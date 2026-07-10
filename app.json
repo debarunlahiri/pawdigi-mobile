@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "PawDigi",
+    "slug": "pawdigi-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/pawdigi-logo.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/pawdigi-logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F1FAFA"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/pawdigi-logo.png",
+        "backgroundColor": "#F1FAFA"
+      }
+    },
+    "web": {
+      "favicon": "./assets/pawdigi-logo.png"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "pawdigi-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "main": "expo/AppEntry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@expo-google-fonts/inter": "^0.4.2",
+    "@expo/vector-icons": "^14.1.0",
+    "@react-native-community/datetimepicker": "^8.4.1",
+    "expo": "~53.0.0",
+    "expo-font": "~13.3.2",
+    "expo-image-picker": "~16.1.4",
+    "expo-linear-gradient": "~14.1.5",
+    "expo-status-bar": "~2.2.3",
+    "react": "19.0.0",
+    "react-native": "^0.79.6",
+    "react-native-safe-area-context": "5.4.0",
+    "react-native-svg": "^15.15.5"
+  },
+  "devDependencies": {
+    "@types/react": "~19.0.10",
+    "typescript": "~5.8.3"
+  }
+}
