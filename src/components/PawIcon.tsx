@@ -1,6 +1,6 @@
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path } from "react-native-svg";
 
-import { colors } from '../theme/colors';
+import { colors } from "../theme/colors";
 
 type PawIconProps = {
   size?: number;

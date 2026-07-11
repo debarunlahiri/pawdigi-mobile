@@ -1,12 +1,21 @@
-import { FontAwesome5 } from '@expo/vector-icons';
-import { useRef, useState } from 'react';
-import { Animated, ImageBackground, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FontAwesome5 } from "@expo/vector-icons";
+import { useRef, useState } from "react";
+import {
+  Animated,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
-import { colors } from '../theme/colors';
-import { fontFamily } from '../theme/typography';
+import { colors } from "../theme/colors";
+import { fontFamily } from "../theme/typography";
 
-const genderOptions = ['Male', 'Female'] as const;
-const colorSuggestions = ['Black', 'Golden', 'Chocolate', 'White'];
+const genderOptions = ["Male", "Female"] as const;
+const colorSuggestions = ["Black", "Golden", "Chocolate", "White"];
 
 export type Gender = (typeof genderOptions)[number];
 
@@ -21,37 +30,52 @@ type AddDogScreenProps = {
 export type AddDogFormData = {
   gender: Gender;
   weight: string;
-  weightUnit: 'kg' | 'lb';
+  weightUnit: "kg" | "lb";
   height: string;
-  heightUnit: 'cm' | 'in';
+  heightUnit: "cm" | "in";
   isSterilized: boolean;
   primaryColor: string;
   markings: string;
 };
 
 export const initialAddDogFormData: AddDogFormData = {
-  gender: 'Male',
-  weight: '',
-  weightUnit: 'kg',
-  height: '',
-  heightUnit: 'cm',
+  gender: "Male",
+  weight: "",
+  weightUnit: "kg",
+  height: "",
+  heightUnit: "cm",
   isSterilized: false,
-  primaryColor: '',
-  markings: ''
+  primaryColor: "",
+  markings: "",
 };
 
-export function AddDogScreen({ formData, petPhotoUri, onFormChange, onBackPress, onNextPress }: AddDogScreenProps) {
+export function AddDogScreen({
+  formData,
+  petPhotoUri,
+  onFormChange,
+  onBackPress,
+  onNextPress,
+}: AddDogScreenProps) {
   const [gender, setGender] = useState<Gender>(formData.gender);
   const [weight, setWeight] = useState(formData.weight);
-  const [weightUnit, setWeightUnit] = useState<'kg' | 'lb'>(formData.weightUnit);
+  const [weightUnit, setWeightUnit] = useState<"kg" | "lb">(
+    formData.weightUnit,
+  );
   const [height, setHeight] = useState(formData.height);
-  const [heightUnit, setHeightUnit] = useState<'cm' | 'in'>(formData.heightUnit);
+  const [heightUnit, setHeightUnit] = useState<"cm" | "in">(
+    formData.heightUnit,
+  );
   const [isSterilized, setSterilized] = useState(formData.isSterilized);
   const [primaryColor, setPrimaryColor] = useState(formData.primaryColor);
   const [markings, setMarkings] = useState(formData.markings);
   const [genderSegmentWidth, setGenderSegmentWidth] = useState(0);
-  const genderAnimation = useRef(new Animated.Value(genderOptions.indexOf(formData.gender))).current;
-  const genderOptionWidth = genderSegmentWidth > 0 ? (genderSegmentWidth - 10) / genderOptions.length : 0;
+  const genderAnimation = useRef(
+    new Animated.Value(genderOptions.indexOf(formData.gender)),
+  ).current;
+  const genderOptionWidth =
+    genderSegmentWidth > 0
+      ? (genderSegmentWidth - 10) / genderOptions.length
+      : 0;
 
   const updateFormData = (updates: Partial<AddDogFormData>) => {
     onFormChange({
@@ -63,7 +87,7 @@ export function AddDogScreen({ formData, petPhotoUri, onFormChange, onBackPress,
       isSterilized,
       primaryColor,
       markings,
-      ...updates
+      ...updates,
     });
   };
 
@@ -74,7 +98,7 @@ export function AddDogScreen({ formData, petPhotoUri, onFormChange, onBackPress,
       toValue: genderOptions.indexOf(nextGender),
       useNativeDriver: true,
       friction: 8,
-      tension: 90
+      tension: 90,
     }).start();
   };
 
@@ -94,25 +118,26 @@ export function AddDogScreen({ formData, petPhotoUri, onFormChange, onBackPress,
           <View style={styles.progressFill} />
         </View>
 
-        <ImageBackground
-          source={{ uri: petPhotoUri || 'https://images.dog.ceo/breeds/vizsla/n02100583_11523.jpg' }}
-          style={styles.dogPreview}
-          imageStyle={styles.dogPreviewImage}
-        >
-          <View style={styles.previewOverlay}>
-            <Text style={styles.previewMeta}>Add Dog: Physical Details</Text>
-            <Text style={styles.previewMeta}>Barkley - ID: A009</Text>
+        <View style={styles.photoWrap}>
+          <View style={styles.photoCircle}>
+            <Image
+              source={{
+                uri:
+                  petPhotoUri ||
+                  "https://images.dog.ceo/breeds/vizsla/n02100583_11523.jpg",
+              }}
+              style={styles.petPhoto}
+            />
           </View>
-          <View style={styles.previewBadge}>
-            <FontAwesome5 name="image" size={10} color="#FFFFFF" />
-          </View>
-        </ImageBackground>
+        </View>
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Gender</Text>
           <View
             style={styles.genderSegment}
-            onLayout={(event) => setGenderSegmentWidth(event.nativeEvent.layout.width)}
+            onLayout={(event) =>
+              setGenderSegmentWidth(event.nativeEvent.layout.width)
+            }
           >
             {genderOptionWidth > 0 ? (
               <Animated.View
@@ -124,23 +149,34 @@ export function AddDogScreen({ formData, petPhotoUri, onFormChange, onBackPress,
                       {
                         translateX: genderAnimation.interpolate({
                           inputRange: [0, 1],
-                          outputRange: [0, genderOptionWidth]
-                        })
-                      }
-                    ]
-                  }
+                          outputRange: [0, genderOptionWidth],
+                        }),
+                      },
+                    ],
+                  },
                 ]}
               />
             ) : null}
             {genderOptions.map((option) => (
-              <Pressable key={option} style={styles.genderOption} onPress={() => handleGenderPress(option)}>
-                <Text style={[styles.genderText, gender === option && styles.genderTextActive]}>{option}</Text>
+              <Pressable
+                key={option}
+                style={styles.genderOption}
+                onPress={() => handleGenderPress(option)}
+              >
+                <Text
+                  style={[
+                    styles.genderText,
+                    gender === option && styles.genderTextActive,
+                  ]}
+                >
+                  {option}
+                </Text>
               </Pressable>
             ))}
           </View>
         </View>
 
-          <MeasurementCard
+        <MeasurementCard
           label="Weight"
           value={weight}
           placeholder="0.0"
@@ -177,7 +213,9 @@ export function AddDogScreen({ formData, petPhotoUri, onFormChange, onBackPress,
         <View style={[styles.card, styles.statusCard]}>
           <View style={styles.statusCopy}>
             <Text style={styles.cardTitle}>Sterilization Status</Text>
-            <Text style={styles.statusText}>Has the dog been neutered or spayed?</Text>
+            <Text style={styles.statusText}>
+              Has the dog been neutered or spayed?
+            </Text>
           </View>
           <Text style={styles.switchLabel}>No</Text>
           <Pressable
@@ -188,11 +226,26 @@ export function AddDogScreen({ formData, petPhotoUri, onFormChange, onBackPress,
               setSterilized(nextValue);
               updateFormData({ isSterilized: nextValue });
             }}
-            style={[styles.iosSwitchTrack, isSterilized && styles.iosSwitchTrackActive]}
+            style={[
+              styles.iosSwitchTrack,
+              isSterilized && styles.iosSwitchTrackActive,
+            ]}
           >
-            <Animated.View style={[styles.iosSwitchThumb, isSterilized && styles.iosSwitchThumbActive]} />
+            <Animated.View
+              style={[
+                styles.iosSwitchThumb,
+                isSterilized && styles.iosSwitchThumbActive,
+              ]}
+            />
           </Pressable>
-          <Text style={[styles.switchLabel, isSterilized && styles.switchLabelActive]}>Yes</Text>
+          <Text
+            style={[
+              styles.switchLabel,
+              isSterilized && styles.switchLabelActive,
+            ]}
+          >
+            Yes
+          </Text>
         </View>
 
         <View style={styles.card}>
@@ -216,7 +269,8 @@ export function AddDogScreen({ formData, petPhotoUri, onFormChange, onBackPress,
                 key={item}
                 style={[
                   styles.chip,
-                  primaryColor.trim().toLowerCase() === item.toLowerCase() && styles.chipSelected
+                  primaryColor.trim().toLowerCase() === item.toLowerCase() &&
+                    styles.chipSelected,
                 ]}
                 onPress={() => {
                   setPrimaryColor(item);
@@ -226,7 +280,8 @@ export function AddDogScreen({ formData, petPhotoUri, onFormChange, onBackPress,
                 <Text
                   style={[
                     styles.chipText,
-                    primaryColor.trim().toLowerCase() === item.toLowerCase() && styles.chipTextSelected
+                    primaryColor.trim().toLowerCase() === item.toLowerCase() &&
+                      styles.chipTextSelected,
                   ]}
                 >
                   {item}
@@ -283,7 +338,7 @@ function MeasurementCard<T extends string>({
   unit,
   firstUnit,
   secondUnit,
-  onUnitChange
+  onUnitChange,
 }: MeasurementCardProps<T>) {
   return (
     <View style={styles.card}>
@@ -295,20 +350,40 @@ function MeasurementCard<T extends string>({
           placeholderTextColor="#6B7280"
           keyboardType="decimal-pad"
           value={value}
-          onChangeText={(text) => onChangeText(text.replace(/[^0-9.]/g, ''))}
+          onChangeText={(text) => onChangeText(text.replace(/[^0-9.]/g, ""))}
         />
         <View style={styles.unitToggle}>
           <Pressable
-            style={[styles.unitButton, unit === firstUnit && styles.unitButtonActive]}
+            style={[
+              styles.unitButton,
+              unit === firstUnit && styles.unitButtonActive,
+            ]}
             onPress={() => onUnitChange(firstUnit)}
           >
-            <Text style={[styles.unitText, unit === firstUnit && styles.unitTextActive]}>{firstUnit}</Text>
+            <Text
+              style={[
+                styles.unitText,
+                unit === firstUnit && styles.unitTextActive,
+              ]}
+            >
+              {firstUnit}
+            </Text>
           </Pressable>
           <Pressable
-            style={[styles.unitButton, unit === secondUnit && styles.unitButtonActive]}
+            style={[
+              styles.unitButton,
+              unit === secondUnit && styles.unitButtonActive,
+            ]}
             onPress={() => onUnitChange(secondUnit)}
           >
-            <Text style={[styles.unitText, unit === secondUnit && styles.unitTextActive]}>{secondUnit}</Text>
+            <Text
+              style={[
+                styles.unitText,
+                unit === secondUnit && styles.unitTextActive,
+              ]}
+            >
+              {secondUnit}
+            </Text>
           </Pressable>
         </View>
       </View>
@@ -321,304 +396,293 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     paddingHorizontal: 12,
-    paddingTop: 8
+    paddingTop: 8,
   },
   content: {
-    paddingBottom: 78
+    paddingBottom: 78,
   },
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between'
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   stepText: {
     color: colors.primary,
     fontSize: 15,
-    fontFamily: fontFamily.semiBold
+    fontFamily: fontFamily.semiBold,
   },
   headerLabel: {
     color: colors.body,
     fontSize: 13,
-    fontFamily: fontFamily.semiBold
+    fontFamily: fontFamily.semiBold,
   },
   progressTrack: {
     marginTop: 10,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#DDE5E6',
-    overflow: 'hidden'
+    backgroundColor: "#DDE5E6",
+    overflow: "hidden",
   },
   progressFill: {
-    width: '66.66%',
-    height: '100%',
-    backgroundColor: colors.primary
+    width: "66.66%",
+    height: "100%",
+    backgroundColor: colors.primary,
   },
-  dogPreview: {
-    height: 132,
+  photoWrap: {
+    alignSelf: "center",
+    width: 120,
+    height: 120,
     marginTop: 18,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#DDE5E6'
   },
-  dogPreviewImage: {
-    resizeMode: 'cover'
+  photoCircle: {
+    width: 116,
+    height: 116,
+    borderRadius: 58,
+    borderWidth: 2,
+    borderColor: "#B9CBCD",
+    overflow: "hidden",
+    backgroundColor: "#DDE5E6",
   },
-  previewOverlay: {
-    position: 'absolute',
-    top: 8,
-    left: 10
-  },
-  previewMeta: {
-    color: colors.primary,
-    fontSize: 5,
-    fontFamily: fontFamily.medium
-  },
-  previewBadge: {
-    position: 'absolute',
-    right: 8,
-    bottom: 8,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: 'rgba(0, 121, 125, 0.74)',
-    alignItems: 'center',
-    justifyContent: 'center'
+  petPhoto: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   card: {
     marginTop: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#B9CBCD',
+    borderColor: "#B9CBCD",
     backgroundColor: colors.card,
-    padding: 12
+    padding: 12,
   },
   cardTitle: {
     color: colors.body,
     fontSize: 14,
-    fontFamily: fontFamily.semiBold
+    fontFamily: fontFamily.semiBold,
   },
   genderSegment: {
     height: 44,
     marginTop: 9,
     borderRadius: 10,
-    backgroundColor: '#E7EEEE',
-    flexDirection: 'row',
+    backgroundColor: "#E7EEEE",
+    flexDirection: "row",
     padding: 5,
-    overflow: 'hidden'
+    overflow: "hidden",
   },
   genderIndicator: {
-    position: 'absolute',
+    position: "absolute",
     top: 5,
     left: 5,
     bottom: 5,
     borderRadius: 8,
-    backgroundColor: colors.primary
+    backgroundColor: colors.primary,
   },
   genderOption: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1,
   },
   genderText: {
     color: colors.body,
     fontSize: 14,
-    fontFamily: fontFamily.semiBold
+    fontFamily: fontFamily.semiBold,
   },
   genderTextActive: {
-    color: '#FFFFFF'
+    color: "#FFFFFF",
   },
   measureInputWrap: {
     height: 40,
     marginTop: 9,
     borderRadius: 9,
     borderWidth: 1,
-    borderColor: '#B9CBCD',
-    backgroundColor: '#F2F8F9',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: 12
+    borderColor: "#B9CBCD",
+    backgroundColor: "#F2F8F9",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingLeft: 12,
   },
   input: {
     flex: 1,
     color: colors.ink,
     fontSize: 15,
     fontFamily: fontFamily.regular,
-    paddingVertical: 0
+    paddingVertical: 0,
   },
   unitToggle: {
     height: 36,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 6,
-    gap: 4
+    gap: 4,
   },
   unitButton: {
     minWidth: 40,
     height: 28,
     borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center'
+    alignItems: "center",
+    justifyContent: "center",
   },
   unitButtonActive: {
-    backgroundColor: colors.card
+    backgroundColor: colors.card,
   },
   unitText: {
     color: colors.body,
     fontSize: 12,
-    fontFamily: fontFamily.semiBold
+    fontFamily: fontFamily.semiBold,
   },
   unitTextActive: {
-    color: colors.primary
+    color: colors.primary,
   },
   statusCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   statusCopy: {
-    flex: 1
+    flex: 1,
   },
   statusText: {
     marginTop: 4,
     color: colors.body,
     fontSize: 13,
     lineHeight: 18,
-    fontFamily: fontFamily.regular
+    fontFamily: fontFamily.regular,
   },
   switchLabel: {
     color: colors.body,
     fontSize: 13,
-    fontFamily: fontFamily.medium
+    fontFamily: fontFamily.medium,
   },
   switchLabelActive: {
     color: colors.primary,
-    fontFamily: fontFamily.extraBold
+    fontFamily: fontFamily.extraBold,
   },
   iosSwitchTrack: {
     width: 46,
     height: 26,
     borderRadius: 13,
-    backgroundColor: '#E7EEEE',
-    justifyContent: 'center',
-    paddingHorizontal: 3
+    backgroundColor: "#E7EEEE",
+    justifyContent: "center",
+    paddingHorizontal: 3,
   },
   iosSwitchTrackActive: {
-    backgroundColor: '#BFE8E8'
+    backgroundColor: "#BFE8E8",
   },
   iosSwitchThumb: {
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000000',
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.12,
     shadowRadius: 2,
-    elevation: 2
+    elevation: 2,
   },
   iosSwitchThumbActive: {
     transform: [{ translateX: 18 }],
-    backgroundColor: colors.primary
+    backgroundColor: colors.primary,
   },
   colorInputWrap: {
     height: 40,
     marginTop: 9,
     borderRadius: 9,
     borderWidth: 1,
-    borderColor: '#B9CBCD',
-    backgroundColor: '#F2F8F9',
-    flexDirection: 'row',
-    alignItems: 'center',
+    borderColor: "#B9CBCD",
+    backgroundColor: "#F2F8F9",
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 14,
-    gap: 8
+    gap: 8,
   },
   chipRow: {
     marginTop: 9,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 7
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 7,
   },
   chip: {
     height: 26,
     borderRadius: 15,
-    backgroundColor: '#DDE5E6',
+    backgroundColor: "#DDE5E6",
     paddingHorizontal: 12,
-    alignItems: 'center',
-    justifyContent: 'center'
+    alignItems: "center",
+    justifyContent: "center",
   },
   chipSelected: {
-    backgroundColor: colors.primary
+    backgroundColor: colors.primary,
   },
   chipText: {
-    color: '#596A78',
+    color: "#596A78",
     fontSize: 12,
-    fontFamily: fontFamily.semiBold
+    fontFamily: fontFamily.semiBold,
   },
   chipTextSelected: {
-    color: '#FFFFFF',
-    fontFamily: fontFamily.extraBold
+    color: "#FFFFFF",
+    fontFamily: fontFamily.extraBold,
   },
   markingsCard: {
     marginTop: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#B9CBCD',
+    borderColor: "#B9CBCD",
     backgroundColor: colors.card,
-    padding: 12
+    padding: 12,
   },
   markingsInput: {
     minHeight: 44,
     marginTop: 8,
     borderRadius: 9,
     borderWidth: 1,
-    borderColor: '#B9CBCD',
-    backgroundColor: '#F2F8F9',
+    borderColor: "#B9CBCD",
+    backgroundColor: "#F2F8F9",
     paddingHorizontal: 12,
     paddingTop: 10,
-    textAlignVertical: 'top',
-    fontSize: 13
+    textAlignVertical: "top",
+    fontSize: 13,
   },
   bottomActions: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
     paddingHorizontal: 12,
     paddingTop: 8,
     paddingBottom: 12,
     borderTopWidth: 1,
-    borderTopColor: '#B9CBCD',
-    backgroundColor: colors.background
+    borderTopColor: "#B9CBCD",
+    backgroundColor: colors.background,
   },
   backButton: {
     width: 92,
-    height: 42,
+    height: 50,
     borderRadius: 10,
     borderWidth: 1.2,
     borderColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.card
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.card,
   },
   backText: {
     color: colors.primary,
     fontSize: 16,
-    fontFamily: fontFamily.extraBold
+    fontFamily: fontFamily.extraBold,
   },
   nextButton: {
     flex: 1,
-    height: 42,
+    height: 50,
     borderRadius: 10,
     backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center'
+    alignItems: "center",
+    justifyContent: "center",
   },
   nextText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontFamily: fontFamily.extraBold
-  }
+    fontFamily: fontFamily.extraBold,
+  },
 });

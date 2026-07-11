@@ -1,8 +1,8 @@
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path } from "react-native-svg";
 
-import { colors } from '../theme/colors';
+import { colors } from "../theme/colors";
 
-export type TrustIconName = 'global-vet' | 'pet-cert' | 'data-safe';
+export type TrustIconName = "global-vet" | "pet-cert" | "data-safe";
 
 type TrustIconProps = {
   name: TrustIconName;
@@ -10,8 +10,12 @@ type TrustIconProps = {
   color?: string;
 };
 
-export function TrustIcon({ name, size = 14, color = colors.trust }: TrustIconProps) {
-  if (name === 'pet-cert') {
+export function TrustIcon({
+  name,
+  size = 14,
+  color = colors.trust,
+}: TrustIconProps) {
+  if (name === "pet-cert") {
     return (
       <Svg width={size} height={size + 1} viewBox="0 0 16 17" fill="none">
         <Path
@@ -22,7 +26,7 @@ export function TrustIcon({ name, size = 14, color = colors.trust }: TrustIconPr
     );
   }
 
-  if (name === 'data-safe') {
+  if (name === "data-safe") {
     return (
       <Svg width={size} height={size + 3} viewBox="0 0 14 17" fill="none">
         <Path

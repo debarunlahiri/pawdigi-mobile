@@ -1,8 +1,8 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from "react-native";
 
-import { colors } from '../theme/colors';
-import { fontFamily } from '../theme/typography';
-import { PawIcon } from './PawIcon';
+import { colors } from "../theme/colors";
+import { fontFamily } from "../theme/typography";
+import { PawIcon } from "./PawIcon";
 
 export function BrandHeader() {
   return (
@@ -15,16 +15,16 @@ export function BrandHeader() {
 
 const styles = StyleSheet.create({
   brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 10,
     paddingTop: 6,
-    paddingBottom: 18
+    paddingBottom: 18,
   },
   brandText: {
     color: colors.primary,
     fontSize: 28,
-    fontFamily: fontFamily.extraBold
-  }
+    fontFamily: fontFamily.extraBold,
+  },
 });
