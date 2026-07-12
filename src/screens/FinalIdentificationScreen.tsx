@@ -130,7 +130,7 @@ function Section({
     <View style={styles.card}>
       <View style={styles.sectionHeader}>
         <View style={styles.iconBox}>
-          <FontAwesome5 name={icon} size={14} color={colors.primary} />
+          <FontAwesome5 name={icon} size={14} color="#FFFFFF" />
         </View>
         <Text style={styles.sectionTitle}>{title}</Text>
       </View>
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 8,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 9,

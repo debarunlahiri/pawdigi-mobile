@@ -27,7 +27,7 @@ type Props = {
 const confetti = Array.from({ length: 22 }, (_, index) => ({
   left: `${(index * 37) % 96}%` as `${number}%`,
   top: 145 + ((index * 83) % 650),
-  color: ["#00ADB5", "#007A7E", "#F0C744", "#FFFFFF"][index % 4],
+  color: [colors.primary, colors.ink, colors.accent, "#FFFFFF"][index % 4],
   rotate: `${(index * 29) % 90}deg`,
 }));
 
@@ -44,7 +44,7 @@ export function PassportCreatedScreen({
   const entrance = useRef(new Animated.Value(0)).current;
   const checkScale = useRef(new Animated.Value(0)).current;
   const confettiFall = useRef(new Animated.Value(-80)).current;
-  const displayName = petName.trim() || "Your pet";
+  const displayName = petName.trim() || "My Profile";
   const age = useMemo(() => getAge(birthDate), [birthDate]);
 
   useEffect(() => {
@@ -141,7 +141,7 @@ export function PassportCreatedScreen({
               />
               <View style={styles.identityCopy}>
                 <Text style={styles.petName}>{displayName}</Text>
-                <Text style={styles.breed}>{breed || "Registered Pet"}</Text>
+                <Text style={styles.breed}>{breed || "Verified Profile"}</Text>
                 <Text style={styles.meta}>
                   <FontAwesome5 name="calendar-alt" size={12} /> {age} •{" "}
                   {gender}
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
   photo: {
     width: 96,
     height: 96,
-    borderRadius: 19,
+    borderRadius: 48,
     borderWidth: 4,
     borderColor: "#FFFFFF",
   },

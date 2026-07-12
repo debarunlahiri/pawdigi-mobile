@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   primaryButtonPressed: {
-    backgroundColor: "#00676B",
+    backgroundColor: colors.ink,
   },
   primaryButtonDisabled: {
     backgroundColor: "#8EA6A8",

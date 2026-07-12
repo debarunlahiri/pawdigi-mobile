@@ -1,11 +1,12 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useState } from 'react';
-import { Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { colors } from '../theme/colors';
 import { fontFamily } from '../theme/typography';
 import { HomePet } from './HomeFragment';
+import { IOSSwitch } from '../components/IOSSwitch';
 
 function DetailShell({ title, subtitle, onBack, children, action }: { title: string; subtitle: string; onBack: () => void; children: React.ReactNode; action?: React.ReactNode }) {
   return <View style={styles.screen}><View style={styles.header}><Pressable style={styles.back} onPress={onBack}><FontAwesome5 name="arrow-left" size={15} color={colors.ink} /></Pressable><View style={{ flex: 1 }}><Text style={styles.heading}>{title}</Text><Text style={styles.subheading}>{subtitle}</Text></View>{action}</View><ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>{children}</ScrollView></View>;
@@ -13,8 +14,8 @@ function DetailShell({ title, subtitle, onBack, children, action }: { title: str
 
 export function IdentificationScreen({ pet, onBack }: { pet: HomePet; onBack: () => void }) {
   return <DetailShell title="Identification" subtitle="Verified physical identity" onBack={onBack} action={<View style={styles.verified}><FontAwesome5 name="check-circle" size={11} color={colors.primary} /><Text style={styles.verifiedText}>VERIFIED</Text></View>}>
-    <Section title="Primary Identity"><Field label="Registered Name" value={pet.name} /><Field label="Species" value={pet.species} /><Field label="Breed" value={pet.breed} /><Field label="Gender" value={`${pet.gender}${pet.isSterilized ? ' (Neutered)' : ''}`} /></Section>
-    <Section title="Physical Traits"><Field label="Weight" value={pet.weight ? `${pet.weight} ${pet.weightUnit}` : 'Not provided'} /><Field label="Primary Color" value="Registered" /><Field label="Distinguishing Markings" value="Saved in passport profile" /></Section>
+    <Section title="My Identity"><Field label="My Registered Name" value={pet.name} /><Field label="Category" value={pet.species} /><Field label="My Breed" value={pet.breed} /><Field label="Gender" value={`${pet.gender}${pet.isSterilized ? ' (Neutered)' : ''}`} /></Section>
+    <Section title="My Physical Traits"><Field label="My Weight" value={pet.weight ? `${pet.weight} ${pet.weightUnit}` : 'Not provided'} /><Field label="My Coat Color" value="Registered" /><Field label="My Distinguishing Markings" value="Saved in my passport" /></Section>
     <Section title="Permanent Identification"><Field label="Microchip Number" value={pet.microchipNumber || 'Not provided'} mono /><Field label="Verification Status" value={pet.microchipNumber ? 'ISO identity verified' : 'Microchip pending'} /></Section>
     <Pressable style={styles.primaryButton}><FontAwesome5 name="pen" size={12} color="#FFFFFF" /><Text style={styles.primaryText}>Update Identification</Text></Pressable>
   </DetailShell>;
@@ -64,7 +65,7 @@ function AddGuardianModal({ visible, onClose, onAdd }: { visible: boolean; onClo
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) { return <View style={styles.section}><Text style={styles.sectionTitle}>{title}</Text>{children}</View>; }
 function Field({ label, value, mono }: { label: string; value: string; mono?: boolean }) { return <View style={styles.field}><Text style={styles.fieldLabel}>{label}</Text><Text style={[styles.fieldValue, mono && styles.mono]}>{value}</Text></View>; }
-function Permission({ icon, title, subtitle, value, onChange }: { icon: string; title: string; subtitle: string; value: boolean; onChange: (value: boolean) => void }) { return <View style={styles.permission}><View style={styles.permissionIcon}><FontAwesome5 name={icon} size={14} color={colors.primary} /></View><View style={{ flex: 1 }}><Text style={styles.cardTitle}>{title}</Text><Text style={styles.cardSubtitle}>{subtitle}</Text></View><Switch value={value} onValueChange={onChange} trackColor={{ false: '#D5DEDF', true: '#80CACC' }} thumbColor={value ? colors.primary : '#FFFFFF'} /></View>; }
+function Permission({ icon, title, subtitle, value, onChange }: { icon: string; title: string; subtitle: string; value: boolean; onChange: (value: boolean) => void }) { return <View style={styles.permission}><View style={styles.permissionIcon}><FontAwesome5 name={icon} size={14} color={colors.primary} /></View><View style={{ flex: 1 }}><Text style={styles.cardTitle}>{title}</Text><Text style={styles.cardSubtitle}>{subtitle}</Text></View><IOSSwitch value={value} onValueChange={onChange} /></View>; }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background }, header: { minHeight: 68, paddingHorizontal: 14, borderBottomWidth: 1, borderBottomColor: '#CAD6D8', flexDirection: 'row', alignItems: 'center' }, back: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#E8EFF0', alignItems: 'center', justifyContent: 'center', marginRight: 10 }, heading: { color: colors.ink, fontFamily: fontFamily.bold, fontSize: 19 }, subheading: { marginTop: 2, color: colors.body, fontSize: 10 }, content: { padding: 14, paddingBottom: 28 },

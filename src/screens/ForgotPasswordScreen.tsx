@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   resetButtonPressed: {
-    backgroundColor: "#00676B",
+    backgroundColor: colors.ink,
   },
   resetButtonDisabled: {
     backgroundColor: "#8EA6A8",

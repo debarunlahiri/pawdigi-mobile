@@ -214,7 +214,7 @@ export function AddDogScreen({
           <View style={styles.statusCopy}>
             <Text style={styles.cardTitle}>Sterilization Status</Text>
             <Text style={styles.statusText}>
-              Has the dog been neutered or spayed?
+              Have I been neutered or spayed?
             </Text>
           </View>
           <Text style={styles.switchLabel}>No</Text>

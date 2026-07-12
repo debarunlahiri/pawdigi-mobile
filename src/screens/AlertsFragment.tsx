@@ -1,7 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { useState } from 'react';
-import { Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Image } from 'react-native';
 
 import { colors } from '../theme/colors';
@@ -23,6 +23,18 @@ export function AlertsFragment({ dogs }: { dogs: HomePet[] }) {
   const [rabiesCompleted, setRabiesCompleted] = useState(false);
   const [showReschedulePicker, setShowReschedulePicker] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [tabsWidth, setTabsWidth] = useState(0);
+  const tabPosition = useRef(new Animated.Value(0)).current;
+  const tabWidth = tabsWidth > 0 ? (tabsWidth - 8) / 2 : 0;
+
+  useEffect(() => {
+    Animated.spring(tabPosition, {
+      toValue: tab === 'upcoming' ? 0 : 1,
+      useNativeDriver: true,
+      friction: 9,
+      tension: 100,
+    }).start();
+  }, [tab, tabPosition]);
   const refreshAlerts = () => {
     setRefreshing(true);
     setTimeout(() => setRefreshing(false), 700);
@@ -35,9 +47,10 @@ export function AlertsFragment({ dogs }: { dogs: HomePet[] }) {
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshAlerts} colors={[colors.primary]} tintColor={colors.primary} progressBackgroundColor="#FFFFFF" />}
       >
-        <View style={styles.tabs}>
-          <Pressable style={[styles.tab, tab === 'upcoming' && styles.tabActive]} onPress={() => setTab('upcoming')}><Text style={[styles.tabText, tab === 'upcoming' && styles.tabTextActive]}>Upcoming</Text></Pressable>
-          <Pressable style={[styles.tab, tab === 'history' && styles.tabActive]} onPress={() => setTab('history')}><Text style={[styles.tabText, tab === 'history' && styles.tabTextActive]}>History</Text></Pressable>
+        <View style={styles.tabs} onLayout={(event) => setTabsWidth(event.nativeEvent.layout.width)}>
+          {tabWidth > 0 ? <Animated.View style={[styles.tabIndicator, { width: tabWidth, transform: [{ translateX: tabPosition.interpolate({ inputRange: [0, 1], outputRange: [0, tabWidth] }) }] }]} /> : null}
+          <Pressable style={styles.tab} onPress={() => setTab('upcoming')}><Text style={[styles.tabText, tab === 'upcoming' && styles.tabTextActive]}>Upcoming</Text></Pressable>
+          <Pressable style={styles.tab} onPress={() => setTab('history')}><Text style={[styles.tabText, tab === 'history' && styles.tabTextActive]}>History</Text></Pressable>
         </View>
 
         {tab === 'upcoming' ? <Upcoming createdAlerts={alerts} rabiesDueDate={rabiesDueDate} rabiesCompleted={rabiesCompleted} onCompleteRabies={() => setRabiesCompleted(true)} onRescheduleRabies={() => setShowReschedulePicker(true)} /> : <History rabiesCompleted={rabiesCompleted} />}
@@ -86,8 +99,8 @@ function CreateAlertModal({ dogs, visible, onClose, onCreate }: { dogs: HomePet[
       <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
       <View style={styles.createSheet}>
         <View style={styles.sheetHandle} />
-        <View style={styles.createHeader}><View><Text style={styles.createTitle}>Create New Alert</Text><Text style={styles.createSubtitle}>Set a reminder for your dog</Text></View><Pressable style={styles.close} onPress={onClose}><FontAwesome5 name="times" size={15} color={colors.body} /></Pressable></View>
-        <Text style={styles.fieldLabel}>Dog</Text>
+        <View style={styles.createHeader}><View><Text style={styles.createTitle}>Create New Alert</Text><Text style={styles.createSubtitle}>Set a reminder for my care</Text></View><Pressable style={styles.close} onPress={onClose}><FontAwesome5 name="times" size={15} color={colors.body} /></Pressable></View>
+        <Text style={styles.fieldLabel}>Family Profile</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dogChoices}>{dogs.map((item) => <Pressable key={item.name} style={[styles.dogChoice, dog === item.name && styles.choiceActive]} onPress={() => setDog(item.name)}><Image source={{ uri: item.photoUri || 'https://images.dog.ceo/breeds/retriever-golden/n02099601_3004.jpg' }} style={styles.choiceAvatar} /><Text style={[styles.choiceText, dog === item.name && styles.choiceTextActive]}>{item.name}</Text></Pressable>)}</ScrollView>
         <Text style={styles.fieldLabel}>Reminder Type</Text>
         <View style={styles.typeChoices}>{['Vaccination', 'Medication', 'Appointment', 'Custom'].map((item) => <Pressable key={item} style={[styles.typeChoice, type === item && styles.choiceActive]} onPress={() => setType(item)}><Text style={[styles.choiceText, type === item && styles.choiceTextActive]}>{item}</Text></Pressable>)}</View>
@@ -137,8 +150,8 @@ function AlertCard({ icon, tone, title, subtitle, badge, actions, onComplete, on
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1 }, content: { paddingHorizontal: 14, paddingTop: 10, paddingBottom: 75 },
-  tabs: { height: 48, borderRadius: 13, backgroundColor: '#E7EDEE', padding: 4, flexDirection: 'row' }, tab: { flex: 1, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }, tabActive: { backgroundColor: '#FFFFFF' }, tabText: { color: colors.body, fontFamily: fontFamily.medium, fontSize: 13 }, tabTextActive: { color: colors.primary },
+  screen: { flex: 1 }, content: { paddingHorizontal: 14, paddingTop: 10, paddingBottom: 104 },
+  tabs: { height: 48, borderRadius: 13, backgroundColor: '#E7EDEE', padding: 4, flexDirection: 'row' }, tabIndicator: { position: 'absolute', left: 4, top: 4, bottom: 4, borderRadius: 10, backgroundColor: '#FFFFFF' }, tab: { flex: 1, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }, tabText: { color: colors.body, fontFamily: fontFamily.medium, fontSize: 13 }, tabTextActive: { color: colors.primary },
   sectionTitle: { marginTop: 24, marginBottom: 10, marginLeft: 3, color: colors.body, fontFamily: fontFamily.medium, fontSize: 13, letterSpacing: 1 },
   card: { minHeight: 84, borderRadius: 13, backgroundColor: '#FFFFFF', padding: 14, marginBottom: 12, flexDirection: 'row', shadowColor: '#9BA9AC', shadowOpacity: 0.12, shadowRadius: 5, shadowOffset: { width: 0, height: 2 }, elevation: 1 }, cardOverdue: { borderWidth: 1, borderColor: '#F3D1D1' },
   iconBox: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 13 }, icon_red: { backgroundColor: '#FFF0F0' }, icon_blue: { backgroundColor: '#E8F0FC' }, icon_teal: { backgroundColor: '#DDF7F7' }, icon_gold: { backgroundColor: '#F8F4E7' },

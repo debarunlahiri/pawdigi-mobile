@@ -67,7 +67,7 @@ export function WelcomeScreen({ onLoginPress }: WelcomeScreenProps) {
           PawDigi
         </Text>
         <Text style={[styles.headline, isCompact && styles.compactHeadline]}>
-          Your pet's health,{"\n"}
+          My health, my story,{"\n"}
           <Text style={styles.headlineAccent}>digitized.</Text>
         </Text>
         <Text style={[styles.subhead, isCompact && styles.compactSubhead]}>

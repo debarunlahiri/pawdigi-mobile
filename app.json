@@ -15,7 +15,13 @@
       "**/*"
     ],
     "plugins": [
-      "./plugins/withApkFilename"
+      "./plugins/withApkFilename",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow PawDigi to use Face ID to protect your records."
+        }
+      ]
     ],
     "ios": {
       "supportsTablet": true

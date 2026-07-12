@@ -3,11 +3,11 @@ import DateTimePicker, {
 } from "@react-native-community/datetimepicker";
 import { FontAwesome5 } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  Animated,
   Image,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -27,6 +27,22 @@ type PassportErrors = {
 
 const breedOptions: Record<Species, string[]> = {
   Canine: [
+    "Bakharwal Dog",
+    "Banjara Hound",
+    "Bully Kutta (Indian Mastiff)",
+    "Chippiparai",
+    "Combai (Kombai)",
+    "Gaddi Kutta",
+    "Indian Pariah Dog (Indie)",
+    "Jonangi",
+    "Kaikadi",
+    "Kanni",
+    "Lhasa Apso",
+    "Mudhol Hound (Caravan Hound)",
+    "Pandikona",
+    "Rajapalayam",
+    "Rampur Greyhound",
+    "Tibetan Mastiff",
     "Affenpinscher",
     "Afghan Hound",
     "Airedale Terrier",
@@ -131,7 +147,6 @@ const breedOptions: Record<Species, string[]> = {
     "Lagotto Romagnolo",
     "Lakeland Terrier",
     "Leonberger",
-    "Lhasa Apso",
     "Lowchen",
     "Maltese",
     "Manchester Terrier",
@@ -190,7 +205,6 @@ const breedOptions: Record<Species, string[]> = {
     "Standard Schnauzer",
     "Standard Poodle",
     "Sussex Spaniel",
-    "Tibetan Mastiff",
     "Tibetan Spaniel",
     "Tibetan Terrier",
     "Toy Fox Terrier",
@@ -246,18 +260,10 @@ const breedOptions: Record<Species, string[]> = {
     "Turkish Angora",
   ],
   Other: [
-    "Bird",
-    "Rabbit",
-    "Guinea Pig",
-    "Hamster",
-    "Ferret",
-    "Reptile",
-    "Turtle",
-    "Fish",
-    "Horse",
-    "Goat",
-    "Mixed Species",
-    "Other",
+    "Indian Pariah Dog (Indie)",
+    "Mixed Breed Dog",
+    "Rescue Dog (Breed Unknown)",
+    "Unknown Dog Breed",
   ],
 };
 const dogCeoBreedPaths: Record<string, string> = {
@@ -343,7 +349,7 @@ export function NewPassportScreen({
   onFormChange,
   onContinue,
 }: NewPassportScreenProps) {
-  const [species, setSpecies] = useState<Species>(formData.species);
+  const [species] = useState<Species>("Canine");
   const [petName, setPetName] = useState(formData.petName);
   const [petPhotoUri, setPetPhotoUri] = useState(formData.petPhotoUri);
   const [breed, setBreed] = useState(formData.breed);
@@ -357,8 +363,6 @@ export function NewPassportScreen({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [verificationMessage, setVerificationMessage] = useState("");
-  const [segmentedWidth, setSegmentedWidth] = useState(0);
-  const tabAnimation = useRef(new Animated.Value(0)).current;
   const verifiedBreed = resolveBreedSelection({ species, breed, breedQuery });
   const errors = getPassportErrors({
     petName,
@@ -372,8 +376,7 @@ export function NewPassportScreen({
   const filteredBreeds = breedOptions[species]
     .filter((item) =>
       item.toLowerCase().includes(breedQuery.trim().toLowerCase()),
-    )
-    .slice(0, 7);
+    );
 
   const updateFormData = (updates: Partial<NewPassportFormData>) => {
     onFormChange({
@@ -392,7 +395,7 @@ export function NewPassportScreen({
     }
 
     let isMounted = true;
-    const breedsToFetch = filteredBreeds.filter(
+    const breedsToFetch = filteredBreeds.slice(0, 10).filter(
       (item) => dogCeoBreedPaths[item] && !breedImages[item],
     );
 
@@ -421,18 +424,6 @@ export function NewPassportScreen({
       isMounted = false;
     };
   }, [breedImages, filteredBreeds, isBreedDropdownOpen, species]);
-
-  useEffect(() => {
-    Animated.spring(tabAnimation, {
-      toValue: speciesOptions.indexOf(species),
-      useNativeDriver: true,
-      friction: 8,
-      tension: 90,
-    }).start();
-  }, [species, tabAnimation]);
-
-  const segmentWidth =
-    segmentedWidth > 0 ? (segmentedWidth - 8) / speciesOptions.length : 0;
 
   const clearVerification = () => {
     if (verificationMessage) {
@@ -482,7 +473,7 @@ export function NewPassportScreen({
     setBreedQuery("");
     updateFormData({ breed: nextBreed });
     setVerificationMessage(
-      "Pet identity verified. Continue to medical history.",
+      "My identity is verified. Continue to my medical history.",
     );
     onContinue?.();
   };
@@ -498,7 +489,7 @@ export function NewPassportScreen({
         <View style={styles.progressFill} />
       </View>
 
-      <Text style={styles.title}>Tell us about your pet</Text>
+      <Text style={styles.title}>Tell us about me</Text>
       <Text style={styles.subtitle}>Step 1: Primary Identity Details</Text>
 
       <View style={styles.photoWrap}>
@@ -517,7 +508,7 @@ export function NewPassportScreen({
         </Pressable>
       </View>
 
-      <Text style={styles.label}>Pet Name</Text>
+      <Text style={styles.label}>My Name</Text>
       <View
         style={[
           styles.inputWrap,
@@ -541,54 +532,6 @@ export function NewPassportScreen({
       {showErrors && errors.petName ? (
         <Text style={styles.errorText}>{errors.petName}</Text>
       ) : null}
-
-      <Text style={styles.label}>Species</Text>
-      <View
-        style={styles.segmented}
-        onLayout={(event) => setSegmentedWidth(event.nativeEvent.layout.width)}
-      >
-        {segmentWidth > 0 ? (
-          <Animated.View
-            style={[
-              styles.segmentIndicator,
-              {
-                width: segmentWidth,
-                transform: [
-                  {
-                    translateX: tabAnimation.interpolate({
-                      inputRange: [0, 1, 2],
-                      outputRange: [0, segmentWidth, segmentWidth * 2],
-                    }),
-                  },
-                ],
-              },
-            ]}
-          />
-        ) : null}
-        {speciesOptions.map((option) => (
-          <Pressable
-            key={option}
-            onPress={() => {
-              clearVerification();
-              setSpecies(option);
-              setBreed("");
-              setBreedQuery("");
-              setBreedDropdownOpen(false);
-              updateFormData({ species: option, breed: "" });
-            }}
-            style={styles.segment}
-          >
-            <Text
-              style={[
-                styles.segmentText,
-                species === option && styles.segmentTextActive,
-              ]}
-            >
-              {option}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
 
       <Text style={styles.label}>Breed</Text>
       <View style={styles.breedField}>
@@ -640,7 +583,12 @@ export function NewPassportScreen({
           </Pressable>
         </Pressable>
         {isBreedDropdownOpen ? (
-          <View style={styles.dropdown}>
+          <ScrollView
+            style={styles.dropdown}
+            nestedScrollEnabled
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator
+          >
             {filteredBreeds.map((item) => (
               <Pressable
                 key={item}
@@ -686,7 +634,7 @@ export function NewPassportScreen({
             {filteredBreeds.length === 0 ? (
               <Text style={styles.noResultsText}>No matching breeds</Text>
             ) : null}
-          </View>
+          </ScrollView>
         ) : null}
       </View>
       {showErrors && errors.breed ? (
@@ -872,9 +820,9 @@ function getPassportErrors({
   const trimmedPetName = petName.trim();
 
   if (!trimmedPetName) {
-    errors.petName = "Pet name is required.";
+    errors.petName = "My name is required.";
   } else if (trimmedPetName.length < 2) {
-    errors.petName = "Pet name must be at least 2 characters.";
+    errors.petName = "My name must be at least 2 characters.";
   }
 
   if (!breed) {
@@ -1082,21 +1030,13 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   dropdown: {
-    position: "absolute",
-    top: 46,
-    left: 0,
-    right: 0,
+    height: 294,
+    marginTop: 4,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#B9CBCD",
     backgroundColor: colors.card,
     overflow: "hidden",
-    zIndex: 30,
-    elevation: 0,
-    shadowColor: "transparent",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
   },
   dropdownItem: {
     minHeight: 42,
@@ -1150,7 +1090,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   continueButtonPressed: {
-    backgroundColor: "#00676B",
+    backgroundColor: colors.ink,
   },
   continueButtonDisabled: {
     backgroundColor: "#8EA6A8",

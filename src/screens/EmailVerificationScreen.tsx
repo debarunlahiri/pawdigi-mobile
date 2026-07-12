@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   primaryButtonPressed: {
-    backgroundColor: "#00676B",
+    backgroundColor: colors.ink,
   },
   primaryButtonText: {
     color: "#FFFFFF",

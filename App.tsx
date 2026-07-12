@@ -254,6 +254,10 @@ export default function App() {
           ) : screen === 'home' ? (
             <HomeScreen
               activeTab={homeTab}
+              onSignOut={() => {
+                setHomeTab('home');
+                setScreen('login');
+              }}
               pet={{
                 name: newPassportFormData.petName,
                 species: newPassportFormData.species,

@@ -18,9 +18,10 @@ export type HomeTab = 'home' | 'dogs' | 'passport' | 'alerts' | 'profile';
 type Props = {
   activeTab?: HomeTab;
   pet?: HomePet;
+  onSignOut: () => void;
 };
 
-export function HomeScreen({ activeTab = 'home', pet }: Props) {
+export function HomeScreen({ activeTab = 'home', pet, onSignOut }: Props) {
   const [selectedTab, setSelectedTab] = useState<HomeTab>(activeTab);
   const [selectedDog, setSelectedDog] = useState(0);
   const [showDogSwitcher, setShowDogSwitcher] = useState(false);
@@ -33,10 +34,7 @@ export function HomeScreen({ activeTab = 'home', pet }: Props) {
   const activePet = dogs[selectedDog] || pet;
   const changeTab = (tab: HomeTab) => {
     if (tab === selectedTab) return;
-    Animated.timing(profileTransition, { toValue: 0, duration: 110, useNativeDriver: true }).start(() => {
-      setSelectedTab(tab);
-      Animated.spring(profileTransition, { toValue: 1, friction: 9, tension: 100, useNativeDriver: true }).start();
-    });
+    setSelectedTab(tab);
   };
 
   useEffect(() => {
@@ -95,14 +93,14 @@ export function HomeScreen({ activeTab = 'home', pet }: Props) {
         ) : selectedTab === 'alerts' ? (
           <AlertsFragment dogs={dogs} />
         ) : selectedTab === 'profile' ? (
-          <ProfileFragment dogCount={dogs.length} />
+          <ProfileFragment dogCount={dogs.length} onSignOut={onSignOut} />
         ) : selectedTab === 'home' && activePet ? (
           <HomeFragment pet={activePet} />
         ) : (
           <View style={styles.homeCard}>
             <View style={styles.iconWrap}><FontAwesome5 name="shield-alt" size={24} color={colors.primary} /></View>
             <Text style={styles.homeTitle}>{selectedTab === 'home' ? 'PawDigi Home' : tabLabel(selectedTab)}</Text>
-            <Text style={styles.homeSubtitle}>{selectedTab === 'home' ? 'Your pet profile setup is complete.' : `${tabLabel(selectedTab)} section`}</Text>
+            <Text style={styles.homeSubtitle}>{selectedTab === 'home' ? 'My profile setup is complete.' : `${tabLabel(selectedTab)} section`}</Text>
           </View>
         )}
       </Animated.View>
@@ -121,14 +119,14 @@ export function HomeScreen({ activeTab = 'home', pet }: Props) {
           });
         }}
       />
-      <DogStoryViewer visible={showStory} dogName={activePet?.name || 'My Dog'} avatarUri={activePet?.photoUri} onClose={() => setShowStory(false)} />
+      <DogStoryViewer visible={showStory} dogName={activePet?.name || 'My Story'} avatarUri={activePet?.photoUri} onClose={() => setShowStory(false)} />
     </View>
   );
 }
 
 const navigationItems: { key: HomeTab; label: string; icon: string }[] = [
   { key: 'home', label: 'Home', icon: 'home' },
-  { key: 'dogs', label: 'Dogs', icon: 'paw' },
+  { key: 'dogs', label: 'My Family', icon: 'paw' },
   { key: 'passport', label: 'Passport', icon: 'id-card' },
   { key: 'alerts', label: 'Alerts', icon: 'calendar-alt' },
   { key: 'profile', label: 'Profile', icon: 'user' }
@@ -140,9 +138,17 @@ function BottomNavigation({ selectedTab, onSelect }: { selectedTab: HomeTab; onS
       {navigationItems.map((item) => {
         const selected = selectedTab === item.key;
         return (
-          <Pressable key={item.key} style={[styles.navigationItem, selected && styles.navigationItemSelected]} onPress={() => onSelect(item.key)}>
-            <FontAwesome5 name={item.icon} size={20} color={selected ? colors.primary : '#526077'} />
-            <Text style={[styles.navigationLabel, selected && styles.navigationLabelSelected]}>{item.label}</Text>
+          <Pressable
+            key={item.key}
+            style={styles.navigationItem}
+            onPress={() => onSelect(item.key)}
+            accessibilityRole="tab"
+            accessibilityLabel={item.label}
+            accessibilityState={{ selected }}
+          >
+            <View style={[styles.navigationIcon, selected && styles.navigationIconSelected]}>
+              <FontAwesome5 name={item.icon} size={20} color={selected ? '#FFFFFF' : colors.body} />
+            </View>
           </Pressable>
         );
       })}
@@ -168,7 +174,7 @@ function HomeHeader({ photoUri, onAvatarPress, onSwitchDog, onNotifications }: {
       </Pressable>
       <Pressable style={styles.switchButton} onPress={onSwitchDog}>
         <FontAwesome5 name="exchange-alt" size={18} color={colors.primary} />
-        <Text style={styles.switchText} numberOfLines={1} maxFontSizeMultiplier={1}>Switch Dog</Text>
+        <Text style={styles.switchText} numberOfLines={1} maxFontSizeMultiplier={1}>Switch Profile</Text>
       </Pressable>
     </View>
   );
@@ -180,12 +186,12 @@ function DogSwitcher({ visible, dogs, selectedDog, onClose, onSelect }: { visibl
       <Pressable style={styles.modalBackdrop} onPress={onClose}>
         <Pressable style={styles.switchSheet} onPress={(event) => event.stopPropagation()}>
           <View style={styles.sheetHandle} />
-          <View style={styles.sheetHeader}><View><Text style={styles.sheetTitle}>Switch Dog</Text><Text style={styles.sheetSubtitle}>Choose an active profile</Text></View><Pressable style={styles.closeButton} onPress={onClose}><FontAwesome5 name="times" size={16} color={colors.body} /></Pressable></View>
+          <View style={styles.sheetHeader}><View><Text style={styles.sheetTitle}>My Family</Text><Text style={styles.sheetSubtitle}>Choose whose profile is active</Text></View><Pressable style={styles.closeButton} onPress={onClose}><FontAwesome5 name="times" size={16} color={colors.body} /></Pressable></View>
           {dogs.map((dog, index) => {
             const selected = index === selectedDog;
             return <Pressable key={`${dog.name}-${index}`} style={[styles.dogOption, selected && styles.dogOptionSelected]} onPress={() => onSelect(index)}><Image source={{ uri: dog.photoUri || 'https://images.dog.ceo/breeds/retriever-golden/n02099601_3004.jpg' }} style={styles.dogAvatar} /><View style={styles.dogCopy}><Text style={styles.dogName}>{dog.name}</Text><Text style={styles.dogBreed}>{dog.breed}</Text></View>{selected ? <View style={styles.selectedCheck}><FontAwesome5 name="check" size={11} color="#FFFFFF" /></View> : <FontAwesome5 name="chevron-right" size={13} color="#8A9699" />}</Pressable>;
           })}
-          <Pressable style={styles.addDogOption}><View style={styles.addDogIcon}><FontAwesome5 name="plus" size={14} color={colors.primary} /></View><Text style={styles.addDogText}>Add another dog</Text></Pressable>
+          <Pressable style={styles.addDogOption}><View style={styles.addDogIcon}><FontAwesome5 name="plus" size={14} color={colors.primary} /></View><Text style={styles.addDogText}>Add family member</Text></Pressable>
         </Pressable>
       </Pressable>
     </Modal>
@@ -204,12 +210,12 @@ function PassportFragment({ pet, onMedicalHistory, onIdentification, onVaccinati
           <Text style={styles.eyebrow}>DIGITAL PASSPORT</Text>
           <View style={styles.verified}><FontAwesome5 name="check-circle" size={14} color="#715900" solid /><Text style={styles.verifiedText}>VERIFIED IDENTITY</Text></View>
         </View>
-        <Text style={styles.petName}>{pet.name || 'Your Pet'}</Text>
+        <Text style={styles.petName}>{pet.name || 'My Profile'}</Text>
         <Image source={{ uri: pet.photoUri || 'https://images.dog.ceo/breeds/retriever-golden/n02099601_3004.jpg' }} style={styles.petPhoto} />
         <View style={styles.qrBadge}><FontAwesome5 name="qrcode" size={28} color={colors.primary} /></View>
 
         <View style={styles.detailGrid}>
-          <Detail label="SPECIES" value={pet.species} />
+          <Detail label="DOG CATEGORY" value={pet.species} />
           <Detail label="BREED" value={pet.breed || 'Not specified'} />
           <Detail label="GENDER" value={`${pet.gender}${pet.isSterilized ? ' (Neutered)' : ''}`} />
           <Detail label="BIRTH DATE" value={formatBirthDate(pet.birthDate)} />
@@ -220,7 +226,7 @@ function PassportFragment({ pet, onMedicalHistory, onIdentification, onVaccinati
         </View>
       </View>
 
-      <MenuCard icon="id-card-alt" title="Identification" subtitle="Species, markings, and physical traits" onPress={onIdentification} />
+      <MenuCard icon="id-card-alt" title="My Identification" subtitle="My breed, markings, and physical traits" onPress={onIdentification} />
       <View style={styles.sectionCard}>
         <View style={styles.sectionHeading}>
           <View style={styles.menuIcon}><FontAwesome5 name="syringe" size={19} color={colors.primary} /></View>
@@ -297,14 +303,14 @@ const styles = StyleSheet.create({
   iconWrap: { width: 54, height: 54, borderRadius: 27, backgroundColor: '#DDF7F7', alignItems: 'center', justifyContent: 'center' },
   homeTitle: { marginTop: 16, color: colors.ink, fontSize: 24, fontFamily: fontFamily.black },
   homeSubtitle: { marginTop: 8, color: colors.body, fontSize: 14, textAlign: 'center', fontFamily: fontFamily.regular },
-  passportContent: { paddingTop: 2, paddingBottom: 24 },
+  passportContent: { paddingTop: 2, paddingBottom: 104 },
   passportCard: { borderRadius: 13, borderWidth: 1, borderColor: '#D5E0E2', backgroundColor: '#FFFFFF', padding: 16 },
   passportTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   eyebrow: { color: '#526077', fontFamily: fontFamily.medium, fontSize: 10, letterSpacing: 1.2 },
   verified: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#FFF9E8', borderWidth: 1, borderColor: '#E8DDAF', borderRadius: 15, paddingHorizontal: 9, height: 27 },
   verifiedText: { color: '#715900', fontFamily: fontFamily.bold, fontSize: 9, letterSpacing: 0.6 },
   petName: { marginTop: 6, color: colors.primary, fontFamily: fontFamily.black, fontSize: 20 },
-  petPhoto: { alignSelf: 'center', marginTop: 18, width: 112, height: 134, borderRadius: 12, borderWidth: 4, borderColor: '#FFFFFF' },
+  petPhoto: { alignSelf: 'center', marginTop: 18, width: 124, height: 124, borderRadius: 62, borderWidth: 4, borderColor: '#FFFFFF' },
   qrBadge: { alignSelf: 'center', marginTop: 8, width: 42, height: 42, borderRadius: 8, borderWidth: 1, borderColor: '#B9CBCD', backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
   detailGrid: { marginTop: 18, flexDirection: 'row', flexWrap: 'wrap', rowGap: 14 },
   detail: { width: '50%' },
@@ -329,9 +335,8 @@ const styles = StyleSheet.create({
   pdfText: { color: '#FFFFFF', fontFamily: fontFamily.bold, fontSize: 15 },
   shareButton: { marginTop: 8, height: 50, borderRadius: 11, borderWidth: 2, borderColor: colors.primary, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   shareText: { color: colors.primary, fontFamily: fontFamily.bold, fontSize: 15 },
-  bottomNavigation: { marginTop: 'auto', height: 74, borderTopWidth: 1, borderTopColor: '#E2E8EA', backgroundColor: '#FFFFFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingHorizontal: 7, paddingBottom: 3 },
-  navigationItem: { flex: 1, height: 62, borderRadius: 16, alignItems: 'center', justifyContent: 'center', gap: 4 },
-  navigationItemSelected: { backgroundColor: '#D9E8FA' },
-  navigationLabel: { color: '#526077', fontFamily: fontFamily.regular, fontSize: 13 },
-  navigationLabelSelected: { color: colors.primary, fontFamily: fontFamily.medium }
+  bottomNavigation: { position: 'absolute', left: 14, right: 14, bottom: 12, height: 64, borderRadius: 32, borderWidth: 1, borderColor: colors.border, backgroundColor: '#FFFFFF', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, shadowColor: colors.ink, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.12, shadowRadius: 6, elevation: 6, overflow: 'hidden' },
+  navigationItem: { flex: 1, height: 62, alignItems: 'center', justifyContent: 'center' },
+  navigationIcon: { width: 48, height: 48, borderRadius: 999, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  navigationIconSelected: { backgroundColor: colors.primary, borderRadius: 999 }
 });

@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   primaryPressed: {
-    backgroundColor: "#00676B",
+    backgroundColor: colors.ink,
   },
   secondary: {
     borderWidth: 1.5,

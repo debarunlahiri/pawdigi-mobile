@@ -62,7 +62,7 @@ export function SplashScreen() {
       <View style={styles.footer}>
         <View style={styles.footerBadge}>
           <Ionicons name="shield-checkmark" size={19} color={colors.primary} />
-          <Text style={styles.footerBadgeText}>Clinical Grade Pet Care</Text>
+          <Text style={styles.footerBadgeText}>Clinical Grade Care for Me</Text>
         </View>
         <Text style={styles.footerMeta}>
           Secured by PawDigi Encryption | v4.2.0

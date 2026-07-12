@@ -36,7 +36,7 @@ export function DogStoryViewer({ visible, dogName, avatarUri, onClose }: { visib
         <View style={styles.scrim} />
         <View style={styles.top}>
           <View style={styles.progressRow}>{stories.map((_, itemIndex) => <View key={itemIndex} style={styles.track}>{itemIndex < index ? <View style={styles.completed} /> : itemIndex === index ? <Animated.View style={[styles.completed, { width: progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }]} /> : null}</View>)}</View>
-          <View style={styles.profileRow}><Image source={{ uri: avatarUri || stories[0].image }} style={styles.avatar} /><Text style={styles.name}>{dogName || 'My Dog'}</Text><Text style={styles.time}>now</Text><Pressable style={styles.close} onPress={onClose}><FontAwesome5 name="times" size={20} color="#FFFFFF" /></Pressable></View>
+          <View style={styles.profileRow}><Image source={{ uri: avatarUri || stories[0].image }} style={styles.avatar} /><Text style={styles.name}>{dogName || 'My Story'}</Text><Text style={styles.time}>now</Text><Pressable style={styles.close} onPress={onClose}><FontAwesome5 name="times" size={20} color="#FFFFFF" /></Pressable></View>
         </View>
         <View style={styles.touchRow}><Pressable style={styles.touchZone} onPress={previous} /><Pressable style={styles.touchZone} onPress={next} /></View>
         <View style={styles.captionWrap}><Text style={styles.caption}>{stories[index].caption}</Text><Text style={styles.credit}>Photo from Unsplash</Text></View>

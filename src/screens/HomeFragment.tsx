@@ -40,8 +40,8 @@ export function HomeFragment({ pet }: { pet: HomePet }) {
           <View style={styles.activeRow}>
             <View style={{ flex: 1 }}>
               <Text style={styles.badge}>ACTIVE PROFILE</Text>
-              <Text style={styles.petName}>{pet.name || "Your Pet"}</Text>
-              <Text style={styles.breed}>{pet.breed || "Registered Pet"}</Text>
+              <Text style={styles.petName}>{pet.name || "My Profile"}</Text>
+              <Text style={styles.breed}>{pet.breed || "Verified Profile"}</Text>
             </View>
             <View style={styles.passportIcon}>
               <FontAwesome5
@@ -87,7 +87,7 @@ export function HomeFragment({ pet }: { pet: HomePet }) {
             icon="briefcase-medical"
             title="Dr. Smith Clinic Visit"
             time="Yesterday, 14:30"
-            description={`Routine wellness exam completed. All vital signs are normal for ${pet.name || "your pet"}'s age and weight.`}
+            description={`My routine wellness exam is complete. All vital signs are normal for my age and weight.`}
             tags={["CLINICAL NOTE", "PRESCRIPTION"]}
           />
           <Activity
@@ -246,7 +246,7 @@ function age(value: string) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  content: { paddingHorizontal: 12, paddingTop: 9, paddingBottom: 22 },
+  content: { paddingHorizontal: 12, paddingTop: 9, paddingBottom: 104 },
   petCard: {
     borderRadius: 17,
     backgroundColor: "#FFFFFF",

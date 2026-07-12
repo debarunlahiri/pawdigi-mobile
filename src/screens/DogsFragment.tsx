@@ -69,13 +69,13 @@ export function DogsFragment({
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
-      <Text style={styles.title}>My Dogs</Text>
+      <Text style={styles.title}>My Family</Text>
       <Text style={styles.subtitle}>
-        Manage health records and digital passports for your pets.
+        Keep my family's health records and digital passports together.
       </Text>
       <Pressable style={styles.addButton} onPress={onAddDog}>
         <FontAwesome5 name="plus" size={18} color="#FFFFFF" />
-        <Text style={styles.addText}>Add Dog</Text>
+        <Text style={styles.addText}>Add Family Member</Text>
       </Pressable>
       <View style={styles.search}>
         <FontAwesome5 name="search" size={18} color="#748185" />
@@ -159,13 +159,13 @@ export function DogsFragment({
         <View style={styles.addCircle}>
           <FontAwesome5 name="plus" size={19} color={colors.ink} />
         </View>
-        <Text style={styles.addAnother}>Add another dog</Text>
+        <Text style={styles.addAnother}>Add another family member</Text>
       </Pressable>
       <View style={styles.readiness}>
         <View>
           <Text style={styles.readinessTitle}>Passport Readiness</Text>
           <Text style={styles.readinessText}>
-            3 out of 3 dogs have verified EU{`\n`}documents.
+            All 3 family profiles have verified EU{`\n`}documents.
           </Text>
         </View>
         <FontAwesome5 name="shield-alt" size={29} color={colors.primary} />
@@ -180,7 +180,7 @@ export function DogsFragment({
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  content: { paddingHorizontal: 14, paddingTop: 9, paddingBottom: 20 },
+  content: { paddingHorizontal: 14, paddingTop: 9, paddingBottom: 104 },
   title: { color: colors.ink, fontFamily: fontFamily.black, fontSize: 20 },
   subtitle: {
     marginTop: 2,
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   dogCardActive: { borderWidth: 2, borderColor: colors.primary },
-  photo: { width: 76, height: 76, borderRadius: 8 },
+  photo: { width: 76, height: 76, borderRadius: 38 },
   dogInfo: { flex: 1, marginLeft: 11 },
   nameRow: { flexDirection: "row", justifyContent: "space-between" },
   name: { color: colors.ink, fontFamily: fontFamily.bold, fontSize: 16 },
