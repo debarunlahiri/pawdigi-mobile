@@ -26,8 +26,6 @@ import { SplashScreen } from './src/screens/SplashScreen';
 import { WelcomeScreen } from './src/screens/WelcomeScreen';
 import { colors } from './src/theme/colors';
 
-const forgotPasswordTopBackground = '#C6F2F1';
-const forgotPasswordBottomBackground = '#F6FBFC';
 const passportDraftKey = '@pawdigi/passport-draft';
 
 export default function App() {
@@ -43,9 +41,6 @@ export default function App() {
   const [homeTab, setHomeTab] = useState<HomeTab>('home');
   const screenTransition = useState(() => new Animated.Value(1))[0];
   const [isDraftLoaded, setDraftLoaded] = useState(false);
-  const isForgotPasswordScreen = !showSplash && screen === 'forgot-password';
-  const statusBarBackground = isForgotPasswordScreen ? forgotPasswordTopBackground : colors.background;
-  const shellBackground = isForgotPasswordScreen ? forgotPasswordBottomBackground : colors.background;
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -180,9 +175,9 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={[styles.safeArea, { backgroundColor: statusBarBackground }]} edges={['top', 'right', 'left']}>
-        <StatusBar style="dark" backgroundColor={statusBarBackground} translucent={false} />
-        <View style={[styles.screenInset, { backgroundColor: shellBackground, paddingTop: isForgotPasswordScreen ? 0 : 28 }]}>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'right', 'left']}>
+        <StatusBar style="dark" backgroundColor={colors.background} translucent={false} />
+        <View style={styles.screenInset}>
           <Animated.View style={[styles.transitionScreen, { opacity: screenTransition, transform: [{ translateX: screenTransition.interpolate({ inputRange: [0, 1], outputRange: [18, 0] }) }] }]}>
           {showSplash ? (
             <SplashScreen />
@@ -295,6 +290,8 @@ const styles = StyleSheet.create({
   },
   screenInset: {
     flex: 1,
+    backgroundColor: colors.background,
+    paddingTop: 28,
     paddingBottom: 12
   },
   transitionScreen: { flex: 1 }

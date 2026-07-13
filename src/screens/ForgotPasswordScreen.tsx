@@ -1,5 +1,4 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -49,18 +48,12 @@ export function ForgotPasswordScreen({
   };
 
   return (
-    <LinearGradient
-      colors={["#C6F2F1", "#EAF5FB", "#F6FBFC"]}
-      locations={[0, 0.52, 1]}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      style={styles.screen}
-    >
+    <View style={styles.screen}>
       <BrandHeader />
 
       <View style={styles.card}>
         <View style={styles.iconBox}>
-          <FontAwesome5 name="undo-alt" size={31} color="#0D1B2A" />
+          <FontAwesome5 name="undo-alt" size={31} color="#FFFFFF" />
         </View>
 
         <Text style={styles.title}>Reset Password</Text>
@@ -115,17 +108,17 @@ export function ForgotPasswordScreen({
           <Text style={styles.backLinkText}>Back to Login</Text>
         </Pressable>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+    backgroundColor: colors.background,
     paddingHorizontal: 16,
   },
   card: {
-    marginTop: 58,
     borderRadius: 22,
     borderWidth: 1,
     borderColor: "#BACACD",
@@ -144,7 +137,7 @@ const styles = StyleSheet.create({
     width: 62,
     height: 62,
     borderRadius: 16,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
