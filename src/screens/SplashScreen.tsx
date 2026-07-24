@@ -48,7 +48,7 @@ export function SplashScreen() {
           <Image
             source={assets.logo}
             style={styles.logo}
-            resizeMode="contain"
+            resizeMode="cover"
           />
         </Animated.View>
         <View style={styles.progressTrack}>
@@ -94,8 +94,9 @@ const styles = StyleSheet.create({
     height: 172,
   },
   logo: {
-    width: 188,
-    height: 160,
+    width: 164,
+    height: 164,
+    borderRadius: 82,
   },
   progressTrack: {
     width: 226,

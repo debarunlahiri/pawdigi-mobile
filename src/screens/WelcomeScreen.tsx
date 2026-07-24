@@ -1,142 +1,156 @@
-import { useEffect, useRef, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
 import {
-  Dimensions,
   Image,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
   StyleSheet,
   Text,
-  useWindowDimensions,
+  TextInput,
   View,
 } from "react-native";
 
-import { ActionButton } from "../components/ActionButton";
-import { FeatureCard } from "../components/FeatureCard";
-import { TrustIcon } from "../components/TrustIcon";
-import { features, trustItems } from "../data/onboarding";
+import { FORM_HANDLING_AND_VERIFICATION_ENABLED } from "../config/features";
 import { assets } from "../theme/assets";
 import { colors } from "../theme/colors";
 import { fontFamily } from "../theme/typography";
 
 type WelcomeScreenProps = {
   onLoginPress: () => void;
+  onCreatePress: (petName: string) => void;
 };
 
-export function WelcomeScreen({ onLoginPress }: WelcomeScreenProps) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const carouselRef = useRef<ScrollView>(null);
-  const { height } = useWindowDimensions();
-  const screenWidth = Dimensions.get("window").width;
-  const pageWidth = Math.min(screenWidth - 52, 430);
-  const isCompact = height < 760;
+export function WelcomeScreen({
+  onLoginPress,
+  onCreatePress,
+}: WelcomeScreenProps) {
+  const [isNamingPet, setIsNamingPet] = useState(false);
+  const [petName, setPetName] = useState("");
+  const [showNameError, setShowNameError] = useState(false);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveIndex((currentIndex) => {
-        const nextIndex = (currentIndex + 1) % features.length;
-        carouselRef.current?.scrollTo({
-          x: nextIndex * pageWidth,
-          animated: true,
-        });
-        return nextIndex;
-      });
-    }, 2600);
+  const handleCreatePress = () => {
+    if (!isNamingPet) {
+      setIsNamingPet(true);
+      return;
+    }
 
-    return () => clearInterval(timer);
-  }, [pageWidth]);
+    const trimmedPetName = petName.trim();
+    if (FORM_HANDLING_AND_VERIFICATION_ENABLED && !trimmedPetName) {
+      setShowNameError(true);
+      return;
+    }
 
-  const onScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const x = event.nativeEvent.contentOffset.x;
-    setActiveIndex(Math.round(x / pageWidth));
+    onCreatePress(trimmedPetName || "My Pet");
   };
 
   return (
-    <View style={[styles.screen, isCompact && styles.compactScreen]}>
-      <View style={styles.hero}>
-        <View
-          style={[styles.appIconCard, isCompact && styles.compactAppIconCard]}
-        >
-          <Image
-            source={assets.logo}
-            style={[styles.appIcon, isCompact && styles.compactAppIcon]}
-            resizeMode="contain"
-          />
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={styles.screen}
+    >
+      <View style={styles.content}>
+        <Text style={styles.welcome}>
+          Welcoming you with{"\n"}a wagging tail
+          <Text style={styles.welcomeAccent}>.</Text>
+        </Text>
+
+        <View style={styles.logoWrap}>
+          <Image source={assets.logo} style={styles.logo} resizeMode="cover" />
         </View>
-        <Text style={[styles.brandName, isCompact && styles.compactBrandName]}>
-          PawDigi
-        </Text>
-        <Text style={[styles.headline, isCompact && styles.compactHeadline]}>
-          My health, my story,{"\n"}
-          <Text style={styles.headlineAccent}>digitized.</Text>
-        </Text>
-        <Text style={[styles.subhead, isCompact && styles.compactSubhead]}>
-          Professional grade medical records and digital passports for your best
-          friend. Secure, verified, and always accessible.
-        </Text>
-      </View>
 
-      <View
-        style={[styles.actionStack, isCompact && styles.compactActionStack]}
-      >
-        <ActionButton
-          label="Get Started"
-          variant="primary"
-          onPress={onLoginPress}
-        />
-        <ActionButton
-          label="Log In"
-          variant="secondary"
-          onPress={onLoginPress}
-        />
-      </View>
+        <Text style={styles.brandName}>PawDigi.life</Text>
+        <Text style={styles.prompt}>What would you like to do?</Text>
 
-      <View style={styles.bottomContent}>
-        <View
-          style={[styles.carouselWrap, isCompact && styles.compactCarouselWrap]}
-        >
-          <ScrollView
-            ref={carouselRef}
-            horizontal
-            pagingEnabled
-            decelerationRate="fast"
-            snapToInterval={pageWidth}
-            snapToAlignment="start"
-            showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={onScrollEnd}
+        <View style={styles.actions}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={onLoginPress}
+            style={({ pressed }) => [
+              styles.actionButton,
+              styles.primaryButton,
+              pressed && styles.primaryButtonPressed,
+            ]}
           >
-            {features.map((feature) => (
-              <View
-                key={feature.title}
-                style={[styles.featurePage, { width: pageWidth }]}
-              >
-                <FeatureCard feature={feature} />
-              </View>
-            ))}
-          </ScrollView>
-        </View>
-
-        <View
-          style={[styles.trustDivider, isCompact && styles.compactTrustDivider]}
-        />
-        <Text
-          style={[
-            styles.trustedHeading,
-            isCompact && styles.compactTrustedHeading,
-          ]}
-        >
-          TRUSTED BY VETERINARY PROFESSIONALS WORLDWIDE
-        </Text>
-        <View style={[styles.trustRow, isCompact && styles.compactTrustRow]}>
-          {trustItems.map((item) => (
-            <View key={item.label} style={styles.trustItem}>
-              <TrustIcon name={item.icon} size={13} />
-              <Text style={styles.trustText}>{item.label}</Text>
+            <View style={styles.actionIcon}>
+              <Ionicons name="log-in-outline" size={22} color="#FFFFFF" />
             </View>
-          ))}
+            <View style={styles.actionCopy}>
+              <Text style={styles.primaryButtonText}>
+                Sign in to your PawDigi.life
+              </Text>
+              <Text style={styles.primaryButtonHint}>
+                I already have an account
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={22} color="#FFFFFF" />
+          </Pressable>
+
+          <View style={styles.createCard}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={handleCreatePress}
+              style={({ pressed }) => [
+                styles.actionButton,
+                styles.secondaryButton,
+                pressed && styles.secondaryButtonPressed,
+              ]}
+            >
+              <View style={[styles.actionIcon, styles.secondaryIcon]}>
+                <Ionicons name="paw" size={21} color={colors.primary} />
+              </View>
+              <View style={styles.actionCopy}>
+                <Text style={styles.secondaryButtonText}>
+                  Create your own PawDigi.life
+                </Text>
+                <Text style={styles.secondaryButtonHint}>
+                  Start a new digital pet passport
+                </Text>
+              </View>
+              <Ionicons
+                name={isNamingPet ? "arrow-forward" : "chevron-down"}
+                size={22}
+                color={colors.primary}
+              />
+            </Pressable>
+
+            {isNamingPet ? (
+              <View style={styles.nameSection}>
+                <Text style={styles.nameLabel}>First, what’s your pet’s name?</Text>
+                <View
+                  style={[
+                    styles.inputWrap,
+                    showNameError && styles.inputWrapError,
+                  ]}
+                >
+                  <Ionicons name="paw-outline" size={19} color={colors.muted} />
+                  <TextInput
+                    autoFocus
+                    autoCapitalize="words"
+                    maxLength={40}
+                    onChangeText={(value) => {
+                      setPetName(value);
+                      if (value.trim()) setShowNameError(false);
+                    }}
+                    onSubmitEditing={handleCreatePress}
+                    placeholder="Your pet’s name"
+                    placeholderTextColor="#849092"
+                    returnKeyType="go"
+                    style={styles.input}
+                    value={petName}
+                  />
+                </View>
+                {showNameError ? (
+                  <Text style={styles.errorText}>
+                    Please enter your pet’s name to continue.
+                  </Text>
+                ) : null}
+              </View>
+            ) : null}
+          </View>
         </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -144,150 +158,160 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.background,
-    alignItems: "center",
-    paddingHorizontal: 26,
-    paddingTop: 18,
-    paddingBottom: 12,
+    paddingHorizontal: 22,
+    paddingBottom: 20,
   },
-  compactScreen: {
-    paddingTop: 10,
-    paddingBottom: 8,
-  },
-  hero: {
-    alignItems: "center",
-    width: "100%",
-  },
-  appIconCard: {
-    width: 86,
-    height: 86,
+  content: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 20,
-    backgroundColor: colors.card,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.18,
-    shadowRadius: 18,
-    elevation: 6,
+    width: "100%",
+    maxWidth: 460,
+    alignSelf: "center",
   },
-  compactAppIconCard: {
-    width: 72,
-    height: 72,
-    borderRadius: 18,
-  },
-  appIcon: {
-    width: 67,
-    height: 67,
-  },
-  compactAppIcon: {
-    width: 56,
-    height: 56,
-  },
-  brandName: {
-    marginTop: 14,
-    color: colors.primary,
-    fontSize: 24,
-    fontFamily: fontFamily.extraBold,
-  },
-  compactBrandName: {
-    marginTop: 10,
-    fontSize: 21,
-  },
-  headline: {
-    marginTop: 22,
+  welcome: {
     color: colors.ink,
-    fontSize: 29,
-    lineHeight: 35,
+    fontSize: 31,
+    lineHeight: 38,
     fontFamily: fontFamily.black,
     textAlign: "center",
   },
-  compactHeadline: {
-    marginTop: 14,
-    fontSize: 25,
-    lineHeight: 30,
-  },
-  headlineAccent: {
+  welcomeAccent: {
     color: colors.primary,
   },
-  subhead: {
-    marginTop: 14,
-    maxWidth: 430,
+  logoWrap: {
+    width: 142,
+    height: 142,
+    marginTop: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logo: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+  },
+  brandName: {
+    marginTop: 2,
+    color: colors.primary,
+    fontSize: 25,
+    fontFamily: fontFamily.extraBold,
+  },
+  prompt: {
+    marginTop: 24,
     color: colors.body,
     fontSize: 15,
-    fontFamily: fontFamily.regular,
-    lineHeight: 22,
-    textAlign: "center",
+    fontFamily: fontFamily.medium,
   },
-  compactSubhead: {
-    marginTop: 8,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  actionStack: {
+  actions: {
     width: "100%",
-    marginTop: 20,
-    gap: 10,
+    marginTop: 16,
+    gap: 12,
   },
-  compactActionStack: {
-    marginTop: 12,
-    gap: 8,
-  },
-  bottomContent: {
-    width: "100%",
-    marginTop: "auto",
-    paddingTop: 20,
-  },
-  carouselWrap: {
-    width: "100%",
-    alignItems: "center",
-  },
-  compactCarouselWrap: {
-    marginTop: 0,
-  },
-  featurePage: {
-    paddingHorizontal: 0,
-  },
-  trustDivider: {
-    width: "100%",
-    height: 1,
-    marginTop: 18,
-    backgroundColor: "#D7E1E3",
-  },
-  compactTrustDivider: {
-    marginTop: 12,
-  },
-  trustedHeading: {
-    marginTop: 14,
-    color: "#6F7D80",
-    fontSize: 11,
-    fontFamily: fontFamily.bold,
-    letterSpacing: 0.9,
-    textAlign: "center",
-  },
-  compactTrustedHeading: {
-    marginTop: 10,
-    fontSize: 10,
-    letterSpacing: 0.7,
-  },
-  trustRow: {
-    marginTop: 14,
+  actionButton: {
+    minHeight: 72,
+    borderRadius: 16,
+    paddingHorizontal: 16,
     flexDirection: "row",
-    flexWrap: "wrap",
+    alignItems: "center",
+    gap: 12,
+  },
+  primaryButton: {
+    backgroundColor: colors.primary,
+  },
+  primaryButtonPressed: {
+    backgroundColor: "#008F98",
+  },
+  secondaryButton: {
+    borderWidth: 1.5,
+    borderColor: "#B8D5D7",
+    backgroundColor: colors.card,
+  },
+  secondaryButtonPressed: {
+    backgroundColor: "#F7FCFC",
+  },
+  actionIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
     justifyContent: "center",
-    gap: 14,
+    backgroundColor: "rgba(255, 255, 255, 0.18)",
   },
-  compactTrustRow: {
+  secondaryIcon: {
+    backgroundColor: colors.paleTeal,
+  },
+  actionCopy: {
+    flex: 1,
+  },
+  primaryButtonText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontFamily: fontFamily.extraBold,
+  },
+  primaryButtonHint: {
+    marginTop: 3,
+    color: "rgba(255, 255, 255, 0.78)",
+    fontSize: 12,
+    fontFamily: fontFamily.regular,
+  },
+  secondaryButtonText: {
+    color: colors.ink,
+    fontSize: 15,
+    fontFamily: fontFamily.extraBold,
+  },
+  secondaryButtonHint: {
+    marginTop: 3,
+    color: colors.body,
+    fontSize: 12,
+    fontFamily: fontFamily.regular,
+  },
+  createCard: {
+    overflow: "hidden",
+    borderRadius: 16,
+    backgroundColor: colors.card,
+  },
+  nameSection: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 18,
+    borderWidth: 1.5,
+    borderTopWidth: 0,
+    borderColor: "#B8D5D7",
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+  },
+  nameLabel: {
+    color: colors.ink,
+    fontSize: 14,
+    fontFamily: fontFamily.semiBold,
+  },
+  inputWrap: {
+    height: 48,
     marginTop: 10,
-    gap: 10,
-  },
-  trustItem: {
+    borderRadius: 10,
+    borderWidth: 1.3,
+    borderColor: "#BACACD",
+    backgroundColor: colors.background,
+    paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 10,
   },
-  trustText: {
-    color: colors.trust,
-    fontSize: 13,
-    fontFamily: fontFamily.bold,
+  inputWrapError: {
+    borderColor: "#B91C1C",
+    backgroundColor: "#FFF7F7",
+  },
+  input: {
+    flex: 1,
+    color: colors.ink,
+    fontSize: 15,
+    fontFamily: fontFamily.regular,
+  },
+  errorText: {
+    marginTop: 7,
+    color: "#B91C1C",
+    fontSize: 11,
+    fontFamily: fontFamily.medium,
   },
 });

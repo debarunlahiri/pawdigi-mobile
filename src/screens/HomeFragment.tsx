@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 
+import { assets } from "../theme/assets";
 import { colors } from "../theme/colors";
 import { fontFamily } from "../theme/typography";
 
@@ -33,9 +34,9 @@ export function HomeFragment({ pet }: { pet: HomePet }) {
       >
         <View style={styles.petCard}>
           <Image
-            source={require("../../assets/pawdigi-logo.png")}
+            source={assets.logo}
             style={styles.logo}
-            resizeMode="contain"
+            resizeMode="cover"
           />
           <View style={styles.activeRow}>
             <View style={{ flex: 1 }}>
@@ -256,7 +257,12 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
-  logo: { alignSelf: "center", width: 170, height: 105 },
+  logo: {
+    alignSelf: "center",
+    width: 108,
+    height: 108,
+    borderRadius: 54,
+  },
   activeRow: { flexDirection: "row", alignItems: "center", marginTop: 4 },
   badge: {
     alignSelf: "flex-start",

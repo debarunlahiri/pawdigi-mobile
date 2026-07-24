@@ -13,16 +13,22 @@ import { useEffect, useState } from 'react';
 import { Animated, BackHandler, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
+import { FORM_HANDLING_AND_VERIFICATION_ENABLED } from './src/config/features';
 import { AddDogScreen, initialAddDogFormData } from './src/screens/AddDogScreen';
 import { ForgotPasswordScreen } from './src/screens/ForgotPasswordScreen';
 import { FinalIdentificationScreen, initialFinalIdentificationFormData } from './src/screens/FinalIdentificationScreen';
 import { EmailVerificationScreen } from './src/screens/EmailVerificationScreen';
+import type { VerificationChannel } from './src/screens/EmailVerificationScreen';
 import { HomeScreen, HomeTab } from './src/screens/HomeScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { NewPassportScreen, initialNewPassportFormData } from './src/screens/NewPassportScreen';
 import { PassportCreatedScreen } from './src/screens/PassportCreatedScreen';
 import { RegisterScreen } from './src/screens/RegisterScreen';
 import { SplashScreen } from './src/screens/SplashScreen';
+import {
+  initialSocialPersonalityFormData,
+  SocialPersonalityScreen
+} from './src/screens/SocialPersonalityScreen';
 import { WelcomeScreen } from './src/screens/WelcomeScreen';
 import { colors } from './src/theme/colors';
 
@@ -31,12 +37,14 @@ const passportDraftKey = '@pawdigi/passport-draft';
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [screen, setScreen] = useState<
-    'welcome' | 'login' | 'forgot-password' | 'register' | 'email-verification' | 'new-passport' | 'add-dog' | 'final-identification' | 'passport-created' | 'home'
+    'welcome' | 'login' | 'forgot-password' | 'register' | 'email-verification' | 'new-passport' | 'add-dog' | 'final-identification' | 'social-personality' | 'passport-created' | 'home'
   >('welcome');
   const [verificationMode, setVerificationMode] = useState<'reset' | 'register'>('reset');
+  const [verificationChannel, setVerificationChannel] = useState<VerificationChannel>('email');
   const [newPassportFormData, setNewPassportFormData] = useState(initialNewPassportFormData);
   const [addDogFormData, setAddDogFormData] = useState(initialAddDogFormData);
   const [finalIdentificationFormData, setFinalIdentificationFormData] = useState(initialFinalIdentificationFormData);
+  const [socialPersonalityFormData, setSocialPersonalityFormData] = useState(initialSocialPersonalityFormData);
   const [isSetupComplete, setSetupComplete] = useState(false);
   const [homeTab, setHomeTab] = useState<HomeTab>('home');
   const screenTransition = useState(() => new Animated.Value(1))[0];
@@ -69,6 +77,7 @@ export default function App() {
           setNewPassportFormData({ ...initialNewPassportFormData, ...draft.newPassport });
           setAddDogFormData({ ...initialAddDogFormData, ...draft.addDog });
           setFinalIdentificationFormData({ ...initialFinalIdentificationFormData, ...draft.finalIdentification });
+          setSocialPersonalityFormData({ ...initialSocialPersonalityFormData, ...draft.socialPersonality });
           setSetupComplete(Boolean(draft.isSetupComplete));
         }
       } catch (error) {
@@ -90,10 +99,11 @@ export default function App() {
         newPassport: newPassportFormData,
         addDog: addDogFormData,
         finalIdentification: finalIdentificationFormData,
+        socialPersonality: socialPersonalityFormData,
         isSetupComplete
       })
     ).catch((error) => console.warn('Unable to save passport draft', error));
-  }, [addDogFormData, finalIdentificationFormData, isDraftLoaded, isSetupComplete, newPassportFormData]);
+  }, [addDogFormData, finalIdentificationFormData, isDraftLoaded, isSetupComplete, newPassportFormData, socialPersonalityFormData]);
 
   const getNextAuthenticatedScreen = () => {
     if (isSetupComplete) {
@@ -147,6 +157,11 @@ export default function App() {
         return true;
       }
 
+      if (screen === 'social-personality') {
+        setScreen('final-identification');
+        return true;
+      }
+
       if (screen === 'passport-created') {
         setScreen('home');
         return true;
@@ -182,26 +197,65 @@ export default function App() {
           {showSplash ? (
             <SplashScreen />
           ) : screen === 'welcome' ? (
-            <WelcomeScreen onLoginPress={() => setScreen('login')} />
+            <WelcomeScreen
+              onLoginPress={() => setScreen('login')}
+              onCreatePress={(petName) => {
+                setNewPassportFormData((currentFormData) => ({
+                  ...currentFormData,
+                  petName
+                }));
+                setScreen('register');
+              }}
+            />
           ) : screen === 'forgot-password' ? (
             <ForgotPasswordScreen
               onBackToLogin={() => setScreen('login')}
               onResetLinkSent={() => {
+                if (!FORM_HANDLING_AND_VERIFICATION_ENABLED) {
+                  setScreen('login');
+                  return;
+                }
                 setVerificationMode('reset');
+                setVerificationChannel('email');
                 setScreen('email-verification');
               }}
             />
           ) : screen === 'register' ? (
             <RegisterScreen
+              petName={newPassportFormData.petName}
+              onProfileChange={({ birthDate, caregiverName, caregiverContact }) => {
+                setNewPassportFormData((currentFormData) => ({
+                  ...currentFormData,
+                  birthDate
+                }));
+                setFinalIdentificationFormData((currentFormData) => ({
+                  ...currentFormData,
+                  familyMembers: [
+                    {
+                      ...currentFormData.familyMembers[0],
+                      name: caregiverName,
+                      contact: caregiverContact,
+                      isPrimary: true
+                    },
+                    ...currentFormData.familyMembers.slice(1)
+                  ]
+                }));
+              }}
               onLoginPress={() => setScreen('login')}
-              onVerificationRequired={() => {
+              onVerificationRequired={(channel) => {
+                if (!FORM_HANDLING_AND_VERIFICATION_ENABLED) {
+                  setScreen('new-passport');
+                  return;
+                }
                 setVerificationMode('register');
+                setVerificationChannel(channel);
                 setScreen('email-verification');
               }}
             />
           ) : screen === 'email-verification' ? (
             <EmailVerificationScreen
               mode={verificationMode}
+              initialChannel={verificationChannel}
               onBackPress={() => setScreen(verificationMode === 'register' ? 'register' : 'forgot-password')}
               onVerified={() => setScreen('new-passport')}
             />
@@ -224,6 +278,14 @@ export default function App() {
               formData={finalIdentificationFormData}
               onFormChange={setFinalIdentificationFormData}
               onBack={() => setScreen('add-dog')}
+              onComplete={() => setScreen('social-personality')}
+            />
+          ) : screen === 'social-personality' ? (
+            <SocialPersonalityScreen
+              petName={newPassportFormData.petName}
+              formData={socialPersonalityFormData}
+              onFormChange={setSocialPersonalityFormData}
+              onBack={() => setScreen('final-identification')}
               onComplete={() => {
                 setSetupComplete(true);
                 setScreen('passport-created');
@@ -268,13 +330,14 @@ export default function App() {
             />
           ) : (
             <LoginScreen
+              petName={newPassportFormData.petName}
               onForgotPassword={() => setScreen('forgot-password')}
               onLoginSuccess={() => {
                 const nextScreen = getNextAuthenticatedScreen();
                 if (nextScreen === 'home') setHomeTab('home');
                 setScreen(nextScreen);
               }}
-              onSignUpPress={() => setScreen('register')}
+              onSignUpPress={() => setScreen('welcome')}
             />
           )}
           </Animated.View>

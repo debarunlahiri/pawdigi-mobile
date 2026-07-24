@@ -110,7 +110,7 @@ export function AddDogScreen({
         contentContainerStyle={styles.content}
       >
         <View style={styles.headerRow}>
-          <Text style={styles.stepText}>Step 2 of 3</Text>
+          <Text style={styles.stepText}>Step 2 of 4</Text>
           <Text style={styles.headerLabel}>Physical Identity</Text>
         </View>
 
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   progressFill: {
-    width: "66.66%",
+    width: "50%",
     height: "100%",
     backgroundColor: colors.primary,
   },

@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { BrandHeader } from "../components/BrandHeader";
+import { FORM_HANDLING_AND_VERIFICATION_ENABLED } from "../config/features";
 import { colors } from "../theme/colors";
 import { fontFamily } from "../theme/typography";
 
@@ -41,7 +42,7 @@ export function ForgotPasswordScreen({
     setSubmitted(true);
     setResetLinkSent(false);
 
-    if (!emailError) {
+    if (!FORM_HANDLING_AND_VERIFICATION_ENABLED || !emailError) {
       setResetLinkSent(true);
       onResetLinkSent();
     }

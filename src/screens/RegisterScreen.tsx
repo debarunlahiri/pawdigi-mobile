@@ -1,354 +1,392 @@
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
-import { BrandHeader } from "../components/BrandHeader";
-import { TrustIcon } from "../components/TrustIcon";
+import { AuthFooter } from "../components/AuthFooter";
+import { GoogleIcon } from "../components/GoogleIcon";
+import { FORM_HANDLING_AND_VERIFICATION_ENABLED } from "../config/features";
+import { assets } from "../theme/assets";
 import { colors } from "../theme/colors";
 import { fontFamily } from "../theme/typography";
 
 type RegisterScreenProps = {
+  petName: string;
   onLoginPress: () => void;
-  onVerificationRequired: () => void;
+  onVerificationRequired: (channel: "email" | "phone") => void;
+  onProfileChange: (profile: {
+    birthDate: string;
+    caregiverName: string;
+    caregiverContact: string;
+  }) => void;
 };
 
 type RegisterErrors = {
-  fullName?: string;
+  birthDate?: string;
+  caregiverName?: string;
+  contact?: string;
   email?: string;
-  password?: string;
-  acceptedTerms?: string;
 };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const strongPasswordPattern =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+const birthDatePattern = /^\d{2}\/\d{2}\/\d{2}$/;
 
 export function RegisterScreen({
-  onLoginPress,
+  petName,
   onVerificationRequired,
+  onProfileChange,
 }: RegisterScreenProps) {
-  const [fullName, setFullName] = useState("");
+  const [birthDate, setBirthDate] = useState("");
+  const [caregiverName, setCaregiverName] = useState("");
+  const [caregiverPhotoUri, setCaregiverPhotoUri] = useState<string>();
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [verificationSent, setVerificationSent] = useState(false);
 
   const errors = useMemo<RegisterErrors>(() => {
     const nextErrors: RegisterErrors = {};
-    const trimmedName = fullName.trim();
     const trimmedEmail = email.trim();
 
-    if (!trimmedName) {
-      nextErrors.fullName = "Full name is required.";
-    } else if (trimmedName.length < 2) {
-      nextErrors.fullName = "Enter at least 2 characters.";
+    if (!birthDatePattern.test(birthDate.trim())) {
+      nextErrors.birthDate = "Enter the date as DD/MM/YYYY.";
     }
 
-    if (!trimmedEmail) {
-      nextErrors.email = "Email address is required.";
-    } else if (!emailPattern.test(trimmedEmail)) {
+    if (caregiverName.trim().length < 2) {
+      nextErrors.caregiverName = "Enter the primary caregiver’s name.";
+    }
+
+    if (!phone.trim() && !trimmedEmail) {
+      nextErrors.contact = "Add a phone number or email address.";
+    }
+
+    if (trimmedEmail && !emailPattern.test(trimmedEmail)) {
       nextErrors.email = "Enter a valid email address.";
     }
 
-    if (!password) {
-      nextErrors.password = "Password is required.";
-    } else if (!strongPasswordPattern.test(password)) {
-      nextErrors.password = "Use upper, lower, number, and symbol.";
-    }
-
-    if (!acceptedTerms) {
-      nextErrors.acceptedTerms = "Accept the terms to continue.";
-    }
-
     return nextErrors;
-  }, [acceptedTerms, email, fullName, password]);
+  }, [birthDate, caregiverName, email, phone]);
 
-  const isFormValid = Object.keys(errors).length === 0;
-  const showErrors = submitted;
-  const passwordStrength = getPasswordStrength(password);
+  const chooseCaregiverPhoto = async () => {
+    const permission =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
 
-  const clearVerification = () => setVerificationSent(false);
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.85,
+    });
 
-  const handleSubmit = () => {
+    if (!result.canceled) {
+      setCaregiverPhotoUri(result.assets[0].uri);
+    }
+  };
+
+  const handleStart = () => {
     setSubmitted(true);
-    setVerificationSent(false);
-
-    if (isFormValid) {
-      setVerificationSent(true);
-      onVerificationRequired();
+    if (
+      !FORM_HANDLING_AND_VERIFICATION_ENABLED ||
+      Object.keys(errors).length === 0
+    ) {
+      onProfileChange({
+        birthDate: birthDate.trim(),
+        caregiverName: caregiverName.trim(),
+        caregiverContact: email.trim() || phone.trim(),
+      });
+      onVerificationRequired(email.trim() ? "email" : "phone");
     }
   };
 
   return (
-    <View style={styles.screen}>
-      <BrandHeader />
-      <View style={styles.card}>
-        <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>
-          Securely manage your pet's medical journey with clinical-grade tools.
-        </Text>
-
-        <Text style={styles.label}>Full Name</Text>
-        <View
-          style={[
-            styles.inputWrap,
-            showErrors && errors.fullName && styles.inputError,
-          ]}
-        >
-          <FontAwesome5 name="user" size={17} color={colors.muted} />
-          <TextInput
-            style={styles.input}
-            placeholder="John Doe"
-            placeholderTextColor="#6F7783"
-            value={fullName}
-            onChangeText={(value) => {
-              setFullName(value);
-              clearVerification();
-            }}
-          />
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={styles.screen}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.identity}>
+          <Image source={assets.logo} style={styles.logo} resizeMode="cover" />
+          <Text style={styles.petName}>{petName}</Text>
+          <Text style={styles.intro}>Let’s create my PawDigi.life</Text>
         </View>
-        {showErrors && errors.fullName ? (
-          <Text style={styles.errorText}>{errors.fullName}</Text>
-        ) : null}
 
-        <Text style={styles.label}>Email Address</Text>
-        <View
-          style={[
-            styles.inputWrap,
-            showErrors && errors.email && styles.inputError,
-          ]}
-        >
-          <FontAwesome5 name="envelope" size={17} color={colors.muted} />
-          <TextInput
-            style={styles.input}
-            placeholder="name@example.com"
-            placeholderTextColor="#6F7783"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={(value) => {
-              setEmail(value);
-              clearVerification();
-            }}
-          />
-        </View>
-        {showErrors && errors.email ? (
-          <Text style={styles.errorText}>{errors.email}</Text>
-        ) : null}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>About me</Text>
 
-        <Text style={styles.label}>Password</Text>
-        <View
-          style={[
-            styles.passwordWrap,
-            showErrors && errors.password && styles.inputError,
-          ]}
-        >
-          <View style={styles.passwordLeft}>
-            <FontAwesome5 name="lock" size={17} color={colors.muted} />
-            <TextInput
-              style={styles.input}
-              placeholder="••••••••"
-              placeholderTextColor="#6F7783"
-              secureTextEntry={!showPassword}
-              value={password}
-              onChangeText={(value) => {
-                setPassword(value);
-                clearVerification();
-              }}
-            />
+          <Text style={styles.label}>My name</Text>
+          <View style={[styles.inputWrap, styles.readOnlyInput]}>
+            <Ionicons name="paw" size={18} color={colors.primary} />
+            <Text style={styles.savedName}>{petName}</Text>
+            <Ionicons name="checkmark-circle" size={19} color={colors.primary} />
           </View>
-          <Pressable onPress={() => setShowPassword((value) => !value)}>
-            <FontAwesome5
-              name={showPassword ? "eye-slash" : "eye"}
-              size={18}
-              color={colors.muted}
-            />
-          </Pressable>
-        </View>
-        <View style={styles.passwordMetaRow}>
-          <Text
-            style={[
-              styles.hint,
-              showErrors && errors.password && styles.errorHint,
-            ]}
-          >
-            8+ chars, upper, lower, number, symbol.
-          </Text>
-          {password ? (
-            <Text style={[styles.strengthText, passwordStrength.style]}>
-              {passwordStrength.label}
-            </Text>
-          ) : null}
-        </View>
-        {showErrors && errors.password ? (
-          <Text style={styles.errorText}>{errors.password}</Text>
-        ) : null}
 
-        <Pressable
-          style={styles.termsRow}
-          onPress={() => {
-            setAcceptedTerms((value) => !value);
-            clearVerification();
-          }}
-        >
+          <Text style={styles.label}>My date of birth</Text>
           <View
             style={[
-              styles.checkbox,
-              acceptedTerms && styles.checkboxChecked,
-              showErrors && errors.acceptedTerms && styles.checkboxError,
+              styles.inputWrap,
+              submitted && errors.birthDate && styles.inputError,
             ]}
           >
-            {acceptedTerms ? (
-              <Ionicons name="checkmark" size={15} color="#FFFFFF" />
-            ) : null}
+            <Ionicons name="calendar-outline" size={19} color={colors.muted} />
+            <TextInput
+              keyboardType="number-pad"
+              maxLength={8}
+              onChangeText={(value) => {
+                const digits = value.replace(/\D/g, "").slice(0, 6);
+                const formatted =
+                  digits.length <= 2
+                    ? digits
+                    : digits.length <= 4
+                      ? `${digits.slice(0, 2)}/${digits.slice(2)}`
+                      : `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+                setBirthDate(formatted);
+              }}
+              placeholder="DD/MM/YY"
+              placeholderTextColor="#7C898B"
+              style={styles.input}
+              value={birthDate}
+            />
           </View>
-          <Text style={styles.termsText}>
-            I agree to the <Text style={styles.linkText}>Terms of Service</Text>{" "}
-            and{"\n"}
-            <Text style={styles.linkText}>Privacy Policy</Text>
-          </Text>
-        </Pressable>
-        {showErrors && errors.acceptedTerms ? (
-          <Text style={styles.errorText}>{errors.acceptedTerms}</Text>
-        ) : null}
+          {submitted && errors.birthDate ? (
+            <Text style={styles.errorText}>{errors.birthDate}</Text>
+          ) : null}
 
-        <Pressable
-          onPress={handleSubmit}
-          style={({ pressed }) => [
-            styles.primaryButton,
-            pressed && styles.primaryButtonPressed,
-            submitted && !isFormValid && styles.primaryButtonDisabled,
-          ]}
-        >
-          <Text style={styles.primaryButtonText}>Create Account</Text>
-          <FontAwesome5 name="arrow-right" size={18} color="#FFFFFF" />
-        </Pressable>
-        {verificationSent ? (
-          <Text style={styles.successText}>
-            Verification email sent. Check your inbox.
-          </Text>
-        ) : null}
+          <View style={styles.divider} />
+          <Text style={styles.sectionTitle}>My primary caregiver</Text>
 
-        <View style={styles.loginRow}>
-          <Text style={styles.loginText}>Already have an account?</Text>
-          <Pressable onPress={onLoginPress}>
-            <Text style={styles.loginLink}>Log In</Text>
+          <View style={styles.caregiverRow}>
+            <Pressable
+              accessibilityLabel="Choose caregiver photo or avatar"
+              accessibilityRole="button"
+              onPress={chooseCaregiverPhoto}
+              style={styles.avatarButton}
+            >
+              {caregiverPhotoUri ? (
+                <Image
+                  source={{ uri: caregiverPhotoUri }}
+                  style={styles.avatarImage}
+                />
+              ) : (
+                <FontAwesome5 name="user" size={24} color={colors.primary} />
+              )}
+              <View style={styles.cameraBadge}>
+                <Ionicons name="camera" size={12} color="#FFFFFF" />
+              </View>
+            </Pressable>
+
+            <View style={styles.caregiverNameWrap}>
+              <Text style={styles.label}>Caregiver’s name</Text>
+              <View
+                style={[
+                  styles.inputWrap,
+                  styles.caregiverNameInput,
+                  submitted && errors.caregiverName && styles.inputError,
+                ]}
+              >
+                <TextInput
+                  autoCapitalize="words"
+                  onChangeText={setCaregiverName}
+                  placeholder="Full name"
+                  placeholderTextColor="#7C898B"
+                  style={styles.input}
+                  value={caregiverName}
+                />
+              </View>
+            </View>
+          </View>
+          {submitted && errors.caregiverName ? (
+            <Text style={styles.errorText}>{errors.caregiverName}</Text>
+          ) : null}
+
+          <Text style={styles.contactHint}>
+            Add at least one contact for authentication
+          </Text>
+
+          <Text style={styles.label}>Phone number</Text>
+          <View
+            style={[
+              styles.inputWrap,
+              submitted && errors.contact && styles.inputError,
+            ]}
+          >
+            <Ionicons name="call-outline" size={19} color={colors.muted} />
+            <TextInput
+              keyboardType="phone-pad"
+              onChangeText={setPhone}
+              placeholder="+91 98765 43210"
+              placeholderTextColor="#7C898B"
+              style={styles.input}
+              value={phone}
+            />
+          </View>
+
+          <Text style={styles.orContact}>OR</Text>
+
+          <Text style={styles.label}>Email address</Text>
+          <View
+            style={[
+              styles.inputWrap,
+              submitted &&
+                (errors.contact || errors.email) &&
+                styles.inputError,
+            ]}
+          >
+            <Ionicons name="mail-outline" size={19} color={colors.muted} />
+            <TextInput
+              autoCapitalize="none"
+              keyboardType="email-address"
+              onChangeText={setEmail}
+              placeholder="name@example.com"
+              placeholderTextColor="#7C898B"
+              style={styles.input}
+              value={email}
+            />
+          </View>
+          {submitted && (errors.email || errors.contact) ? (
+            <Text style={styles.errorText}>
+              {errors.email ?? errors.contact}
+            </Text>
+          ) : null}
+
+          <Pressable
+            onPress={handleStart}
+            style={({ pressed }) => [
+              styles.primaryButton,
+              pressed && styles.primaryButtonPressed,
+            ]}
+          >
+            <Text style={styles.primaryButtonText}>Start My PawDigi.life</Text>
+            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
           </Pressable>
+
+          <View style={styles.orRow}>
+            <View style={styles.orLine} />
+            <Text style={styles.orText}>OR ASK MY CAREGIVER TO USE</Text>
+            <View style={styles.orLine} />
+          </View>
+
+          <View style={styles.socialRow}>
+            <Pressable
+              onPress={() => onVerificationRequired("email")}
+              style={({ pressed }) => [
+                styles.socialButton,
+                pressed && styles.socialButtonPressed,
+              ]}
+            >
+              <GoogleIcon size={19} />
+              <Text style={styles.socialText}>Google</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => onVerificationRequired("email")}
+              style={({ pressed }) => [
+                styles.socialButton,
+                pressed && styles.socialButtonPressed,
+              ]}
+            >
+              <FontAwesome5 name="apple" size={22} color={colors.ink} />
+              <Text style={styles.socialText}>Apple</Text>
+            </Pressable>
+          </View>
         </View>
 
-        <View style={styles.divider} />
-
-        <View style={styles.securityRow}>
-          <View style={styles.securityItem}>
-            <TrustIcon name="data-safe" size={14} color={colors.muted} />
-            <Text style={styles.securityText}>SSL Encrypted</Text>
-          </View>
-          <View style={styles.securityItem}>
-            <FontAwesome5 name="shield-alt" size={15} color={colors.muted} />
-            <Text style={styles.securityText}>GDPR Compliant</Text>
-          </View>
-        </View>
-      </View>
-    </View>
+        <AuthFooter />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
-}
-
-function getPasswordStrength(password: string) {
-  let score = 0;
-
-  if (password.length >= 8) score += 1;
-  if (/[a-z]/.test(password)) score += 1;
-  if (/[A-Z]/.test(password)) score += 1;
-  if (/\d/.test(password)) score += 1;
-  if (/[^A-Za-z\d]/.test(password)) score += 1;
-
-  if (score >= 5) {
-    return { label: "Strong", style: styles.strong };
-  }
-
-  if (score >= 3) {
-    return { label: "Medium", style: styles.medium };
-  }
-
-  return { label: "Weak", style: styles.weak };
 }
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: 16,
-    justifyContent: "center",
+    paddingBottom: 8,
+  },
+  identity: {
+    alignItems: "center",
+    paddingTop: 2,
+    paddingBottom: 12,
+  },
+  logo: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+  },
+  petName: {
+    color: colors.primary,
+    fontSize: 23,
+    fontFamily: fontFamily.extraBold,
+  },
+  intro: {
+    marginTop: 4,
+    color: colors.ink,
+    fontSize: 18,
+    fontFamily: fontFamily.black,
+    textAlign: "center",
   },
   card: {
     width: "100%",
-    borderRadius: 16,
+    maxWidth: 460,
+    alignSelf: "center",
+    borderRadius: 18,
     backgroundColor: colors.card,
-    paddingHorizontal: 20,
-    paddingTop: 22,
-    paddingBottom: 18,
+    padding: 18,
     shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.16,
-    shadowRadius: 24,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.14,
+    shadowRadius: 20,
+    elevation: 4,
   },
-  title: {
+  sectionTitle: {
     color: colors.ink,
-    fontSize: 27,
-    lineHeight: 32,
-    textAlign: "center",
-    fontFamily: fontFamily.black,
-  },
-  subtitle: {
-    marginTop: 9,
-    color: colors.body,
-    fontSize: 13,
-    lineHeight: 19,
-    textAlign: "center",
-    fontFamily: fontFamily.regular,
+    fontSize: 17,
+    fontFamily: fontFamily.extraBold,
   },
   label: {
-    marginTop: 16,
+    marginTop: 13,
     color: colors.body,
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: fontFamily.semiBold,
   },
   inputWrap: {
-    height: 42,
-    marginTop: 7,
-    borderRadius: 9,
+    height: 44,
+    marginTop: 6,
+    borderRadius: 10,
     borderWidth: 1.3,
     borderColor: "#BACACD",
     backgroundColor: colors.background,
+    paddingHorizontal: 13,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 14,
-    gap: 11,
+    gap: 10,
   },
-  passwordWrap: {
-    height: 42,
-    marginTop: 7,
-    borderRadius: 9,
-    borderWidth: 1.3,
-    borderColor: "#BACACD",
-    backgroundColor: colors.background,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 14,
+  readOnlyInput: {
+    borderColor: "#B8D5D7",
+    backgroundColor: colors.paleTeal,
   },
-  inputError: {
-    borderColor: "#B91C1C",
-    backgroundColor: "#FFF7F7",
-  },
-  passwordLeft: {
+  savedName: {
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 11,
+    color: colors.ink,
+    fontSize: 14,
+    fontFamily: fontFamily.semiBold,
   },
   input: {
     flex: 1,
@@ -357,79 +395,79 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.regular,
     paddingVertical: 0,
   },
-  passwordMetaRow: {
-    marginTop: 6,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 10,
-  },
-  hint: {
-    color: colors.muted,
-    fontSize: 12,
-    lineHeight: 16,
-    fontFamily: fontFamily.medium,
-  },
-  errorHint: {
-    color: "#B91C1C",
-  },
-  strengthText: {
-    fontSize: 12,
-    fontFamily: fontFamily.extraBold,
-  },
-  weak: {
-    color: "#B91C1C",
-  },
-  medium: {
-    color: "#A16207",
-  },
-  strong: {
-    color: colors.primary,
+  inputError: {
+    borderColor: "#B91C1C",
+    backgroundColor: "#FFF7F7",
   },
   errorText: {
-    marginTop: 4,
+    marginTop: 5,
     color: "#B91C1C",
     fontSize: 11,
-    lineHeight: 14,
     fontFamily: fontFamily.medium,
   },
-  termsRow: {
-    marginTop: 18,
+  divider: {
+    height: 1,
+    marginVertical: 18,
+    backgroundColor: colors.border,
+  },
+  caregiverRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "flex-end",
     gap: 12,
   },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 5,
+  avatarButton: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
     borderWidth: 1.3,
-    borderColor: "#BACACD",
-    backgroundColor: colors.card,
+    borderColor: "#B8D5D7",
+    backgroundColor: colors.paleTeal,
     alignItems: "center",
     justifyContent: "center",
   },
-  checkboxChecked: {
-    borderColor: colors.primary,
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 31,
+  },
+  cameraBadge: {
+    position: "absolute",
+    right: -1,
+    bottom: -1,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: colors.card,
   },
-  checkboxError: {
-    borderColor: "#B91C1C",
-  },
-  termsText: {
+  caregiverNameWrap: {
     flex: 1,
-    color: colors.body,
-    fontSize: 13,
-    lineHeight: 19,
-    fontFamily: fontFamily.regular,
   },
-  linkText: {
+  caregiverNameInput: {
+    paddingLeft: 12,
+  },
+  contactHint: {
+    marginTop: 18,
     color: colors.primary,
-    fontFamily: fontFamily.medium,
+    fontSize: 12,
+    fontFamily: fontFamily.semiBold,
+  },
+  orContact: {
+    marginTop: 10,
+    marginBottom: -4,
+    color: colors.muted,
+    fontSize: 10,
+    letterSpacing: 1.2,
+    textAlign: "center",
+    fontFamily: fontFamily.bold,
   },
   primaryButton: {
     height: 48,
     marginTop: 20,
-    borderRadius: 10,
+    borderRadius: 12,
     backgroundColor: colors.primary,
     flexDirection: "row",
     alignItems: "center",
@@ -439,58 +477,50 @@ const styles = StyleSheet.create({
   primaryButtonPressed: {
     backgroundColor: colors.ink,
   },
-  primaryButtonDisabled: {
-    backgroundColor: "#8EA6A8",
-  },
   primaryButtonText: {
     color: "#FFFFFF",
-    fontSize: 17,
+    fontSize: 16,
     fontFamily: fontFamily.extraBold,
   },
-  successText: {
-    marginTop: 8,
-    color: colors.primary,
-    fontSize: 12,
-    lineHeight: 16,
-    textAlign: "center",
-    fontFamily: fontFamily.semiBold,
-  },
-  loginRow: {
-    marginTop: 22,
+  orRow: {
+    marginVertical: 16,
     flexDirection: "row",
-    justifyContent: "center",
+    alignItems: "center",
     gap: 8,
   },
-  loginText: {
-    color: colors.body,
-    fontSize: 13,
-    fontFamily: fontFamily.regular,
-  },
-  loginLink: {
-    color: colors.primary,
-    fontSize: 13,
-    fontFamily: fontFamily.extraBold,
-  },
-  divider: {
+  orLine: {
+    flex: 1,
     height: 1,
-    marginTop: 22,
-    backgroundColor: "#BACACD",
+    backgroundColor: "#D2DDDF",
   },
-  securityRow: {
-    marginTop: 16,
+  orText: {
+    color: colors.muted,
+    fontSize: 9,
+    letterSpacing: 0.5,
+    fontFamily: fontFamily.semiBold,
+  },
+  socialRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  socialButton: {
+    flex: 1,
+    height: 42,
+    borderRadius: 10,
+    borderWidth: 1.3,
+    borderColor: "#BACACD",
+    backgroundColor: colors.card,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 20,
+    gap: 9,
   },
-  securityItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
+  socialButtonPressed: {
+    backgroundColor: "#F5FAFA",
   },
-  securityText: {
-    color: colors.muted,
-    fontSize: 12,
+  socialText: {
+    color: colors.ink,
+    fontSize: 13,
     fontFamily: fontFamily.semiBold,
   },
 });

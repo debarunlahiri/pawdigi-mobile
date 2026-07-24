@@ -16,6 +16,7 @@ import {
 
 import { colors } from "../theme/colors";
 import { fontFamily } from "../theme/typography";
+import { FORM_HANDLING_AND_VERIFICATION_ENABLED } from "../config/features";
 
 const speciesOptions = ["Canine", "Feline", "Other"] as const;
 export type Species = (typeof speciesOptions)[number];
@@ -465,7 +466,10 @@ export function NewPassportScreen({
     setVerificationMessage("");
     setBreedDropdownOpen(false);
 
-    if (Object.keys(nextErrors).length > 0) {
+    if (
+      FORM_HANDLING_AND_VERIFICATION_ENABLED &&
+      Object.keys(nextErrors).length > 0
+    ) {
       return;
     }
 
@@ -481,7 +485,7 @@ export function NewPassportScreen({
   return (
     <View style={styles.screen}>
       <View style={styles.headerRow}>
-        <Text style={styles.stepText}>Step 1 of 3</Text>
+        <Text style={styles.stepText}>Step 1 of 4</Text>
         <Text style={styles.headerLabel}>Primary Identity</Text>
       </View>
 
@@ -489,8 +493,8 @@ export function NewPassportScreen({
         <View style={styles.progressFill} />
       </View>
 
-      <Text style={styles.title}>Tell us about me</Text>
-      <Text style={styles.subtitle}>Step 1: Primary Identity Details</Text>
+      <Text style={styles.title}>Welcome into your PawDigi.life</Text>
+      <Text style={styles.subtitle}>Let’s know you a bit more, {petName}</Text>
 
       <View style={styles.photoWrap}>
         <Pressable style={styles.photoCircle} onPress={handlePickPetPhoto}>
@@ -699,16 +703,13 @@ export function NewPassportScreen({
             pressed && styles.continueButtonPressed,
           ]}
         >
-          <Text style={styles.continueText}>Continue</Text>
+          <Text style={styles.continueText}>Continue My Journey</Text>
           <FontAwesome5 name="arrow-right" size={18} color="#FFFFFF" />
         </Pressable>
 
         {verificationMessage ? (
           <Text style={styles.successText}>{verificationMessage}</Text>
         ) : null}
-        <Text style={styles.footerText}>
-          You can add medical history in the next step.
-        </Text>
       </View>
     </View>
   );
@@ -898,7 +899,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   progressFill: {
-    width: "33.33%",
+    width: "25%",
     height: "100%",
     backgroundColor: colors.accent,
   },

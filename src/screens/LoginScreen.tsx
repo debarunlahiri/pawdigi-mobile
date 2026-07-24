@@ -1,14 +1,23 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
-import { BrandHeader } from "../components/BrandHeader";
+import { AuthFooter } from "../components/AuthFooter";
 import { GoogleIcon } from "../components/GoogleIcon";
-import { TrustIcon } from "../components/TrustIcon";
+import { FORM_HANDLING_AND_VERIFICATION_ENABLED } from "../config/features";
+import { assets } from "../theme/assets";
 import { colors } from "../theme/colors";
 import { fontFamily } from "../theme/typography";
 
 type LoginScreenProps = {
+  petName?: string;
   onForgotPassword: () => void;
   onLoginSuccess: () => void;
   onSignUpPress: () => void;
@@ -22,6 +31,7 @@ type LoginErrors = {
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function LoginScreen({
+  petName,
   onForgotPassword,
   onLoginSuccess,
   onSignUpPress,
@@ -53,22 +63,25 @@ export function LoginScreen({
   const handleLogin = () => {
     setSubmitted(true);
 
-    if (isFormValid) {
+    if (!FORM_HANDLING_AND_VERIFICATION_ENABLED || isFormValid) {
       onLoginSuccess();
     }
   };
 
   return (
     <View style={styles.screen}>
-      <BrandHeader />
+      <View style={styles.identity}>
+        <Image source={assets.logo} style={styles.logo} resizeMode="cover" />
+        {petName ? <Text style={styles.petName}>{petName}</Text> : null}
+        <Text style={styles.intro}>
+          {petName
+            ? `I’m ${petName}. Let me into my PawDigi.life`
+            : "Let me into my PawDigi.life"}
+        </Text>
+      </View>
 
       <View style={styles.card}>
-        <Text style={styles.title}>Welcome Back</Text>
-        <Text style={styles.subtitle}>
-          Access your pet's professional health records.
-        </Text>
-
-        <Text style={styles.label}>Email Address</Text>
+        <Text style={styles.label}>My human’s email address</Text>
         <View
           style={[
             styles.inputWrap,
@@ -91,7 +104,7 @@ export function LoginScreen({
         ) : null}
 
         <View style={styles.passwordHeader}>
-          <Text style={styles.label}>Password</Text>
+          <Text style={styles.label}>My password</Text>
           <Pressable onPress={onForgotPassword}>
             <Text style={styles.forgot}>Forgot Password?</Text>
           </Pressable>
@@ -124,7 +137,7 @@ export function LoginScreen({
             submitted && !isFormValid && styles.loginButtonDisabled,
           ]}
         >
-          <Text style={styles.loginButtonText}>Log In</Text>
+          <Text style={styles.loginButtonText}>Let Me In</Text>
           <FontAwesome5 name="arrow-right" size={18} color="#FFFFFF" />
         </Pressable>
 
@@ -141,7 +154,7 @@ export function LoginScreen({
           ]}
         >
           <GoogleIcon size={20} />
-          <Text style={styles.socialText}>Continue with Google</Text>
+          <Text style={styles.socialText}>Let me in with Google</Text>
         </Pressable>
 
         <Pressable
@@ -151,20 +164,19 @@ export function LoginScreen({
           ]}
         >
           <FontAwesome5 name="apple" size={23} color={colors.ink} />
-          <Text style={styles.socialText}>Continue with Apple</Text>
+          <Text style={styles.socialText}>Let me in with Apple</Text>
         </Pressable>
       </View>
 
       <View style={styles.signupRow}>
-        <Text style={styles.signupText}>New to PawDigi?</Text>
+        <Text style={styles.signupText}>I’m new to PawDigi</Text>
         <Pressable onPress={onSignUpPress}>
-          <Text style={styles.signupLink}>Sign Up</Text>
+          <Text style={styles.signupLink}>Create mine</Text>
         </Pressable>
       </View>
 
-      <View style={styles.footer}>
-        <TrustIcon name="global-vet" size={20} color={colors.body} />
-        <Text style={styles.footerText}>PawDigi Health</Text>
+      <View style={styles.footerWrap}>
+        <AuthFooter />
       </View>
     </View>
   );
@@ -175,6 +187,29 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     paddingHorizontal: 16,
+  },
+  identity: {
+    alignItems: "center",
+    paddingTop: 4,
+    paddingBottom: 14,
+  },
+  logo: {
+    width: 92,
+    height: 92,
+    borderRadius: 46,
+  },
+  petName: {
+    color: colors.primary,
+    fontSize: 24,
+    fontFamily: fontFamily.extraBold,
+  },
+  intro: {
+    marginTop: 6,
+    color: colors.ink,
+    fontSize: 18,
+    lineHeight: 24,
+    textAlign: "center",
+    fontFamily: fontFamily.black,
   },
   card: {
     width: "100%",
@@ -190,18 +225,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.16,
     shadowRadius: 24,
     elevation: 5,
-  },
-  title: {
-    color: colors.ink,
-    fontSize: 23,
-    fontFamily: fontFamily.black,
-  },
-  subtitle: {
-    marginTop: 8,
-    color: colors.body,
-    fontSize: 14,
-    lineHeight: 20,
-    fontFamily: fontFamily.regular,
   },
   label: {
     color: colors.body,
@@ -329,20 +352,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: fontFamily.semiBold,
   },
-  footer: {
+  footerWrap: {
     marginHorizontal: -16,
     marginTop: "auto",
-    height: 52,
     borderTopWidth: 1,
     borderColor: "#BACACD",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 9,
-  },
-  footerText: {
-    color: colors.body,
-    fontSize: 19,
-    fontFamily: fontFamily.extraBold,
   },
 });

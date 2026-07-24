@@ -1,3 +1,3 @@
 export const assets = {
-  logo: require('../../assets/pawdigi-logo.png')
+  logo: require('../../assets/logo.jpg')
 } as const;
