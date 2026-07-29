@@ -1,26 +1,22 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
+import { Text, TextInput } from "../components/Typography";
 
 import { AuthFooter } from "../components/AuthFooter";
 import { GoogleIcon } from "../components/GoogleIcon";
 import { FORM_HANDLING_AND_VERIFICATION_ENABLED } from "../config/features";
 import { assets } from "../theme/assets";
 import { colors } from "../theme/colors";
+import { cardSurface } from "../theme/cards";
+import { elevation } from "../theme/elevation";
 import { fontFamily } from "../theme/typography";
 
 type LoginScreenProps = {
   petName?: string;
   onForgotPassword: () => void;
   onLoginSuccess: () => void;
-  onSignUpPress: () => void;
+  onBackPress: () => void;
 };
 
 type LoginErrors = {
@@ -34,7 +30,7 @@ export function LoginScreen({
   petName,
   onForgotPassword,
   onLoginSuccess,
-  onSignUpPress,
+  onBackPress,
 }: LoginScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -92,7 +88,7 @@ export function LoginScreen({
           <TextInput
             style={styles.input}
             placeholder="name@example.com"
-            placeholderTextColor="#6F7783"
+            placeholderTextColor={colors.body}
             keyboardType="email-address"
             autoCapitalize="none"
             value={email}
@@ -119,7 +115,7 @@ export function LoginScreen({
           <TextInput
             style={styles.input}
             placeholder="••••••••"
-            placeholderTextColor="#6F7783"
+            placeholderTextColor={colors.body}
             secureTextEntry
             value={password}
             onChangeText={setPassword}
@@ -138,7 +134,7 @@ export function LoginScreen({
           ]}
         >
           <Text style={styles.loginButtonText}>Let Me In</Text>
-          <FontAwesome5 name="arrow-right" size={18} color="#FFFFFF" />
+          <FontAwesome5 name="arrow-right" size={18} color={colors.card} />
         </Pressable>
 
         <View style={styles.orRow}>
@@ -168,12 +164,17 @@ export function LoginScreen({
         </Pressable>
       </View>
 
-      <View style={styles.signupRow}>
-        <Text style={styles.signupText}>I’m new to PawDigi</Text>
-        <Pressable onPress={onSignUpPress}>
-          <Text style={styles.signupLink}>Create mine</Text>
-        </Pressable>
-      </View>
+      <Pressable
+        accessibilityLabel="Go back to my pup’s welcome screen"
+        accessibilityRole="button"
+        onPress={onBackPress}
+        style={styles.backToWelcome}
+      >
+        <FontAwesome5 name="arrow-left" size={14} color={colors.primary} />
+        <Text style={styles.backToWelcomeText}>
+          Go back to my pup’s welcome
+        </Text>
+      </Pressable>
 
       <View style={styles.footerWrap}>
         <AuthFooter />
@@ -213,18 +214,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: "100%",
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
-    paddingHorizontal: 22,
-    paddingTop: 20,
-    paddingBottom: 18,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.16,
-    shadowRadius: 24,
-    elevation: 5,
+    ...cardSurface,
   },
   label: {
     color: colors.body,
@@ -237,7 +227,7 @@ const styles = StyleSheet.create({
     marginBottom: 17,
     borderRadius: 9,
     borderWidth: 1.3,
-    borderColor: "#BACACD",
+    borderColor: colors.borderStrong,
     backgroundColor: colors.background,
     flexDirection: "row",
     alignItems: "center",
@@ -245,13 +235,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   inputError: {
-    borderColor: "#B91C1C",
-    backgroundColor: "#FFF7F7",
+    borderColor: colors.error,
+    backgroundColor: colors.background,
   },
   errorText: {
     marginTop: -12,
     marginBottom: 10,
-    color: "#B91C1C",
+    color: colors.error,
     fontSize: 11,
     lineHeight: 14,
     fontFamily: fontFamily.medium,
@@ -281,20 +271,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 14 },
-    shadowOpacity: 0.2,
-    shadowRadius: 22,
-    elevation: 4,
+    ...elevation.l2,
   },
   loginButtonPressed: {
     backgroundColor: colors.ink,
   },
   loginButtonDisabled: {
-    backgroundColor: "#8EA6A8",
+    backgroundColor: colors.borderStrong,
   },
   loginButtonText: {
-    color: "#FFFFFF",
+    color: colors.card,
     fontSize: 16,
     fontFamily: fontFamily.semiBold,
   },
@@ -307,10 +293,10 @@ const styles = StyleSheet.create({
   orLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "#BACACD",
+    backgroundColor: colors.borderStrong,
   },
   orText: {
-    color: "#B0BEC1",
+    color: colors.borderStrong,
     fontSize: 13,
     letterSpacing: 2,
     fontFamily: fontFamily.semiBold,
@@ -319,7 +305,7 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 19,
     borderWidth: 1.3,
-    borderColor: "#BACACD",
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     flexDirection: "row",
     alignItems: "center",
@@ -328,34 +314,32 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   socialPressed: {
-    backgroundColor: "#F8FBFB",
+    backgroundColor: colors.background,
   },
   socialText: {
     color: colors.ink,
     fontSize: 14,
     fontFamily: fontFamily.medium,
   },
-  signupRow: {
+  backToWelcome: {
+    minHeight: 44,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 9,
-    marginTop: 16,
+    gap: 8,
+    alignSelf: "center",
+    marginTop: 12,
+    paddingHorizontal: 14,
   },
-  signupText: {
-    color: colors.body,
-    fontSize: 15,
-    fontFamily: fontFamily.regular,
-  },
-  signupLink: {
+  backToWelcomeText: {
     color: colors.primary,
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: fontFamily.semiBold,
   },
   footerWrap: {
     marginHorizontal: -16,
     marginTop: "auto",
     borderTopWidth: 1,
-    borderColor: "#BACACD",
+    borderColor: colors.borderStrong,
   },
 });

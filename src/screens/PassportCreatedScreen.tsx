@@ -1,4 +1,4 @@
-import { FontAwesome5 } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useMemo, useRef } from "react";
 import {
   Animated,
@@ -6,99 +6,78 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
+import { Text } from "../components/Typography";
 
 import { colors } from "../theme/colors";
+import { cardSurface } from "../theme/cards";
+import { elevation } from "../theme/elevation";
 import { fontFamily } from "../theme/typography";
+import { assets } from "../theme/assets";
 
 type Props = {
   petName: string;
-  breed: string;
-  birthDate: string;
-  gender: string;
   photoUri?: string;
   microchipNumber: string;
+  vaccinationDetails: string;
+  previousRecordCount: number;
   onViewPassport: () => void;
   onGoHome: () => void;
 };
 
-const confetti = Array.from({ length: 22 }, (_, index) => ({
-  left: `${(index * 37) % 96}%` as `${number}%`,
-  top: 145 + ((index * 83) % 650),
-  color: [colors.primary, colors.ink, colors.accent, "#FFFFFF"][index % 4],
-  rotate: `${(index * 29) % 90}deg`,
-}));
-
 export function PassportCreatedScreen({
   petName,
-  breed,
-  birthDate,
-  gender,
   photoUri,
   microchipNumber,
+  vaccinationDetails,
+  previousRecordCount,
   onViewPassport,
   onGoHome,
 }: Props) {
   const entrance = useRef(new Animated.Value(0)).current;
-  const checkScale = useRef(new Animated.Value(0)).current;
-  const confettiFall = useRef(new Animated.Value(-80)).current;
-  const displayName = petName.trim() || "My Profile";
-  const age = useMemo(() => getAge(birthDate), [birthDate]);
+  const greetingAnimation = useRef(new Animated.Value(0)).current;
+  const displayName = petName.trim() || "my friend";
+  const idTag = useMemo(
+    () => createIdTag(displayName, microchipNumber),
+    [displayName, microchipNumber],
+  );
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.spring(checkScale, {
-        toValue: 1,
-        friction: 5,
-        tension: 85,
-        useNativeDriver: true,
-      }),
-      Animated.timing(entrance, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(confettiFall, {
-        toValue: 0,
-        duration: 1100,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [checkScale, confettiFall, entrance]);
+    Animated.spring(entrance, {
+      toValue: 1,
+      friction: 8,
+      tension: 70,
+      useNativeDriver: true,
+    }).start();
+  }, [entrance]);
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(greetingAnimation, {
+          toValue: 1,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+        Animated.timing(greetingAnimation, {
+          toValue: 0,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+
+    animation.start();
+    return () => animation.stop();
+  }, [greetingAnimation]);
 
   return (
     <View style={styles.screen}>
-      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-        {confetti.map((piece, index) => (
-          <Animated.View
-            key={index}
-            style={[
-              styles.confetti,
-              {
-                left: piece.left,
-                top: piece.top,
-                backgroundColor: piece.color,
-                transform: [
-                  { translateY: confettiFall },
-                  { rotate: piece.rotate },
-                ],
-              },
-            ]}
-          />
-        ))}
-      </View>
-
       <ScrollView
-        showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
       >
-        <Animated.View
-          style={[styles.checkCircle, { transform: [{ scale: checkScale }] }]}
-        >
-          <FontAwesome5 name="check-circle" size={34} color="#004B54" />
-        </Animated.View>
         <Animated.View
           style={{
             opacity: entrance,
@@ -106,274 +85,298 @@ export function PassportCreatedScreen({
               {
                 translateY: entrance.interpolate({
                   inputRange: [0, 1],
-                  outputRange: [18, 0],
+                  outputRange: [22, 0],
                 }),
               },
             ],
           }}
         >
-          <Text style={styles.title}>Passport Created!</Text>
-          <Text style={styles.subtitle}>
-            {displayName}'s official health profile is now active and{`\n`}
-            verified for international travel.
-          </Text>
-
-          <View style={styles.passportCard}>
-            <View style={styles.brandRow}>
-              <View style={styles.logo}>
-                <FontAwesome5 name="paw" size={20} color="#FFFFFF" />
-              </View>
-              <Text style={styles.brand}>PawDigi</Text>
-              <View style={styles.verified}>
-                <FontAwesome5 name="check-circle" size={14} color="#2C250B" solid />
-                <Text style={styles.verifiedText}>VERIFIED STATUS</Text>
-              </View>
-            </View>
-
-            <View style={styles.identityRow}>
+          <View style={styles.hero}>
+            <View style={styles.photoFrame}>
               <Image
-                source={{
-                  uri:
-                    photoUri ||
-                    "https://images.dog.ceo/breeds/retriever-golden/n02099601_3004.jpg",
-                }}
+                source={photoUri ? { uri: photoUri } : assets.logo}
                 style={styles.photo}
               />
-              <View style={styles.identityCopy}>
-                <Text style={styles.petName}>{displayName}</Text>
-                <Text style={styles.breed}>{breed || "Verified Profile"}</Text>
-                <Text style={styles.meta}>
-                  <FontAwesome5 name="calendar-alt" size={12} /> {age} •{" "}
-                  {gender}
-                </Text>
+              <View style={styles.verifiedBadge}>
+                <Ionicons
+                  name="shield-checkmark"
+                  size={22}
+                  color={colors.card}
+                />
               </View>
             </View>
 
-            <View style={styles.infoRow}>
-              <InfoBox
-                label="MICROCHIP ID"
-                value={microchipNumber || "Not provided"}
-              />
-              <InfoBox label="TRAVEL REGION" value="European Union" />
+            <View style={styles.greetingRow}>
+              <Animated.View
+                style={[
+                  styles.greetingIcon,
+                  {
+                    transform: [
+                      {
+                        translateY: greetingAnimation.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [1, -3],
+                        }),
+                      },
+                      {
+                        rotate: greetingAnimation.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: ["-8deg", "8deg"],
+                        }),
+                      },
+                      {
+                        scale: greetingAnimation.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [1, 1.12],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              >
+                <Ionicons name="paw" size={21} color={colors.ink} />
+              </Animated.View>
+              <Text style={styles.greeting}>
+                Woof woof, {displayName}! How’ve you been?
+              </Text>
             </View>
-            <View style={styles.divider} />
-            <View style={styles.securityRow}>
-              <View style={styles.barcode}>
-                {Array.from({ length: 14 }, (_, i) => (
-                  <View
-                    key={i}
-                    style={[styles.bar, { width: i % 3 === 0 ? 3 : 1 }]}
-                  />
-                ))}
-              </View>
-              <Text style={styles.secured}>SECURED BY PAWDIGI V2.4</Text>
-            </View>
+            <Text style={styles.readyTitle}>
+              Your Digital Passport is Ready.
+            </Text>
+            <Text style={styles.description}>
+              Thanks to my human, I have a secure place for my health records,
+              memories, vaccinations, adventures, and everything that makes me
+              who I am.
+            </Text>
           </View>
 
-          <Pressable style={styles.primaryButton} onPress={onViewPassport}>
-            <FontAwesome5 name="id-card" size={20} color="#FFFFFF" />
-            <Text style={styles.primaryText}>View Digital Passport</Text>
-          </Pressable>
-          <Pressable style={styles.homeButton} onPress={onGoHome}>
-            <Text style={styles.homeText}>Go to Home</Text>
-            <FontAwesome5 name="home" size={18} color={colors.primary} />
-          </Pressable>
-          <Text style={styles.legal}>
-            THIS IS A LEGALLY RECOGNIZED DIGITAL DOCUMENT IN 24 REGIONS
-          </Text>
+          <View style={styles.statusGrid}>
+            <StatusCard
+              icon="medical-outline"
+              label="Immunizations"
+              value={
+                vaccinationDetails.trim() ? "Details Added" : "Needs Update"
+              }
+            />
+            <StatusCard
+              icon="airplane-outline"
+              label="Travel Status"
+              value={microchipNumber.trim() ? "Identity Ready" : "Setup Needed"}
+            />
+            <StatusCard icon="id-card-outline" label="ID Tag" value={idTag} />
+            <StatusCard
+              icon="heart-circle-outline"
+              label="Health Records"
+              value={
+                previousRecordCount
+                  ? `${previousRecordCount} Secured`
+                  : "Encrypted"
+              }
+            />
+          </View>
         </Animated.View>
       </ScrollView>
+
+      <View style={styles.bottomBar}>
+        <Pressable onPress={onViewPassport} style={styles.primaryButton}>
+          <Ionicons name="id-card-outline" size={18} color={colors.card} />
+          <Text style={styles.primaryButtonText}>View My Passport</Text>
+          <Ionicons name="arrow-forward" size={18} color={colors.card} />
+        </Pressable>
+
+        <Pressable onPress={onGoHome} style={styles.homeButton}>
+          <Ionicons name="home-outline" size={18} color={colors.primary} />
+          <Text style={styles.homeButtonText}>Take Me Home</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
 
-function InfoBox({ label, value }: { label: string; value: string }) {
+function StatusCard({
+  icon,
+  label,
+  value,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  value: string;
+}) {
   return (
-    <View style={styles.infoBox}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
+    <View style={styles.statusCard}>
+      <View style={styles.statusIcon}>
+        <Ionicons name={icon} size={21} color={colors.primary} />
+      </View>
+      <Text style={styles.statusLabel}>{label}</Text>
+      <Text numberOfLines={2} style={styles.statusValue}>
+        {value}
+      </Text>
     </View>
   );
 }
 
-function getAge(value: string) {
-  const match = value.match(/^(\d{2})(\d{2})(\d{4})$/);
-  if (!match) return "Age verified";
-  const born = new Date(
-    Number(match[3]),
-    Number(match[2]) - 1,
-    Number(match[1]),
-  );
-  const years = Math.max(
-    0,
-    Math.floor((Date.now() - born.getTime()) / 31557600000),
-  );
-  return `${years} ${years === 1 ? "year" : "years"}`;
+function createIdTag(name: string, microchipNumber: string) {
+  if (microchipNumber.trim()) {
+    const compact = microchipNumber.replace(/\s/g, "");
+    return `PD-${compact.slice(-6)}`;
+  }
+
+  const hash = name
+    .toUpperCase()
+    .split("")
+    .reduce((total, character) => total + character.charCodeAt(0), 0);
+
+  return `PD-${String(hash * 37)
+    .padStart(6, "0")
+    .slice(-6)}`;
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  content: { paddingHorizontal: 14, paddingTop: 10, paddingBottom: 22 },
-  confetti: { position: "absolute", width: 9, height: 13, zIndex: 0 },
-  checkCircle: {
-    alignSelf: "center",
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: colors.accent,
+  content: { paddingHorizontal: 18, paddingTop: 4, paddingBottom: 16 },
+  hero: { alignItems: "center" },
+  photoFrame: {
+    width: 138,
+    height: 138,
+    marginTop: 2,
+    borderWidth: 5,
+    borderColor: colors.card,
+    borderRadius: 69,
+    backgroundColor: colors.paleTeal,
+    ...elevation.l2,
+  },
+  photo: { width: "100%", height: "100%", borderRadius: 64 },
+  verifiedBadge: {
+    position: "absolute",
+    right: -5,
+    bottom: 4,
+    width: 45,
+    height: 45,
     alignItems: "center",
     justifyContent: "center",
-  },
-  title: {
-    marginTop: 14,
-    textAlign: "center",
-    color: colors.primary,
-    fontFamily: fontFamily.black,
-    fontSize: 23,
-  },
-  subtitle: {
-    marginTop: 6,
-    textAlign: "center",
-    color: colors.body,
-    fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 18,
-  },
-  passportCard: {
-    marginTop: 18,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#B7C9CC",
-    borderRadius: 20,
-    padding: 14,
-    shadowColor: "#61777B",
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-  },
-  brandRow: { flexDirection: "row", alignItems: "center" },
-  logo: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  brand: {
-    marginLeft: 8,
-    color: colors.primary,
-    fontFamily: fontFamily.medium,
-    fontSize: 15,
-  },
-  verified: {
-    marginLeft: "auto",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 9,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: "#FFE28A",
-    borderWidth: 1,
-    borderColor: "#E8C452",
-  },
-  verifiedText: {
-    color: "#2C250B",
-    fontFamily: fontFamily.bold,
-    fontSize: 9,
-    letterSpacing: 0.8,
-  },
-  identityRow: { flexDirection: "row", alignItems: "center", marginTop: 20 },
-  photo: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
     borderWidth: 4,
-    borderColor: "#FFFFFF",
-  },
-  identityCopy: { flex: 1, marginLeft: 14 },
-  petName: { color: colors.ink, fontFamily: fontFamily.medium, fontSize: 17 },
-  breed: {
-    marginTop: 4,
-    color: colors.body,
-    fontFamily: fontFamily.regular,
-    fontSize: 15,
-  },
-  meta: {
-    marginTop: 7,
-    color: colors.primary,
-    fontFamily: fontFamily.medium,
-    fontSize: 11,
-  },
-  infoRow: { flexDirection: "row", gap: 8, marginTop: 20 },
-  infoBox: {
-    flex: 1,
-    minHeight: 70,
-    borderRadius: 11,
-    borderWidth: 1,
-    borderColor: "#CAD8DA",
-    backgroundColor: "#F1F7F7",
-    padding: 11,
-  },
-  infoLabel: { color: "#778386", fontFamily: fontFamily.medium, fontSize: 9 },
-  infoValue: {
-    marginTop: 5,
-    color: colors.ink,
-    fontFamily: fontFamily.regular,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  divider: {
-    marginTop: 20,
-    borderTopWidth: 1,
-    borderStyle: "dashed",
-    borderColor: "#D4DFE0",
-  },
-  securityRow: { marginTop: 13, flexDirection: "row", alignItems: "center" },
-  barcode: { height: 29, flexDirection: "row", gap: 2, alignItems: "stretch" },
-  bar: { height: "100%", backgroundColor: "#687174" },
-  secured: {
-    marginLeft: "auto",
-    color: "#858D8F",
-    fontFamily: fontFamily.medium,
-    fontSize: 9,
-    letterSpacing: 2,
-  },
-  primaryButton: {
-    marginTop: 24,
-    height: 50,
-    borderRadius: 13,
+    borderColor: colors.background,
+    borderRadius: 23,
     backgroundColor: colors.primary,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 9,
   },
-  primaryText: {
-    color: "#FFFFFF",
-    fontFamily: fontFamily.medium,
-    fontSize: 16,
-  },
-  homeButton: {
-    height: 48,
+  greetingRow: {
+    width: "100%",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
+    marginTop: 16,
+    paddingHorizontal: 6,
   },
-  homeText: {
-    color: colors.primary,
-    fontFamily: fontFamily.medium,
-    fontSize: 15,
+  greetingIcon: {
+    width: 30,
+    height: 30,
+    flexShrink: 0,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  legal: {
-    marginTop: 22,
+  greeting: {
+    maxWidth: 290,
+    flexShrink: 1,
+    color: colors.ink,
+    fontFamily: fontFamily.black,
+    fontSize: 20,
+    lineHeight: 25,
     textAlign: "center",
-    color: "#A3ADAF",
+    includeFontPadding: false,
+  },
+  readyTitle: {
+    maxWidth: 330,
+    marginTop: 12,
+    color: colors.primary,
+    fontFamily: fontFamily.extraBold,
+    fontSize: 23,
+    lineHeight: 29,
+    textAlign: "center",
+  },
+  description: {
+    maxWidth: 350,
+    marginTop: 10,
+    color: colors.body,
     fontFamily: fontFamily.regular,
-    fontSize: 8,
-    letterSpacing: 0.3,
+    fontSize: 12,
+    lineHeight: 19,
+    textAlign: "center",
+  },
+  statusGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginTop: 17,
+  },
+  statusCard: {
+    width: "48%",
+    minHeight: 106,
+    alignItems: "center",
+    justifyContent: "center",
+    ...cardSurface,
+  },
+  statusIcon: {
+    width: 35,
+    height: 35,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 5,
+    borderRadius: 11,
+    backgroundColor: colors.paleTeal,
+  },
+  statusLabel: {
+    color: colors.body,
+    fontFamily: fontFamily.medium,
+    fontSize: 11,
+    textAlign: "center",
+  },
+  statusValue: {
+    marginTop: 2,
+    color: colors.ink,
+    fontFamily: fontFamily.bold,
+    fontSize: 13,
+    lineHeight: 17,
+    textAlign: "center",
+  },
+  primaryButton: {
+    minHeight: 50,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    borderRadius: 25,
+    backgroundColor: colors.primary,
+    ...elevation.l2,
+  },
+  primaryButtonText: {
+    color: colors.card,
+    fontFamily: fontFamily.bold,
+    fontSize: 14,
+  },
+  homeButton: {
+    minHeight: 50,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 9,
+    marginTop: 9,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    borderRadius: 25,
+    backgroundColor: "transparent",
+  },
+  homeButtonText: {
+    color: colors.primary,
+    fontFamily: fontFamily.bold,
+    fontSize: 14,
+  },
+  bottomBar: {
+    paddingHorizontal: 18,
+    paddingTop: 10,
+    paddingBottom: 10,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: colors.background,
   },
 });

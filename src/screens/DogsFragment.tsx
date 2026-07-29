@@ -1,17 +1,13 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
-import {
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Text, TextInput } from "../components/Typography";
+import { AddFamilyMemberButton } from "../components/AddFamilyMemberButton";
 
 import { colors } from "../theme/colors";
+import { cardSurface } from "../theme/cards";
 import { fontFamily } from "../theme/typography";
+import { assets } from "../theme/assets";
 import { HomePet } from "./HomeFragment";
 
 type Props = {
@@ -34,27 +30,13 @@ export function DogsFragment({
 }: Props) {
   const [query, setQuery] = useState("");
   const allDogs = useMemo<DogListItem[]>(() => {
-    const base = dogs.map((dog, index) => ({
+    return dogs.map((dog, index) => ({
       ...dog,
       score: index === 0 ? 94 : 72,
       status:
         index === selectedDog ? "ACTIVE" : index === 1 ? "Due: Vac" : "HEALTHY",
       sourceIndex: index,
     }));
-    return [
-      ...base,
-      {
-        ...dogs[0],
-        name: "Bella",
-        breed: "French Bulldog",
-        gender: "Female",
-        photoUri:
-          "https://images.dog.ceo/breeds/bulldog-french/n02108915_4474.jpg",
-        score: 88,
-        status: "HEALTHY",
-        sourceIndex: -1,
-      },
-    ];
   }, [dogs, selectedDog]);
   const filtered = allDogs.filter((dog) =>
     `${dog.name} ${dog.breed}`
@@ -73,18 +55,14 @@ export function DogsFragment({
       <Text style={styles.subtitle}>
         Keep my family's health records and digital passports together.
       </Text>
-      <Pressable style={styles.addButton} onPress={onAddDog}>
-        <FontAwesome5 name="plus" size={18} color="#FFFFFF" />
-        <Text style={styles.addText}>Add Family Member</Text>
-      </Pressable>
       <View style={styles.search}>
-        <FontAwesome5 name="search" size={18} color="#748185" />
+        <FontAwesome5 name="search" size={18} color={colors.body} />
         <TextInput
           value={query}
           onChangeText={setQuery}
           style={styles.searchInput}
           placeholder="Search by name or breed..."
-          placeholderTextColor="#737D8D"
+          placeholderTextColor={colors.body}
         />
       </View>
 
@@ -97,11 +75,7 @@ export function DogsFragment({
             onPress={() => dog.sourceIndex >= 0 && onSelectDog(dog.sourceIndex)}
           >
             <Image
-              source={{
-                uri:
-                  dog.photoUri ||
-                  "https://images.dog.ceo/breeds/retriever-golden/n02099601_3004.jpg",
-              }}
+              source={dog.photoUri ? { uri: dog.photoUri } : assets.logo}
               style={styles.photo}
             />
             <View style={styles.dogInfo}>
@@ -120,7 +94,7 @@ export function DogsFragment({
                     <FontAwesome5
                       name="calendar-alt"
                       size={10}
-                      color="#8B6D00"
+                      color={colors.tertiary}
                     />
                   ) : null}
                   <Text
@@ -141,7 +115,7 @@ export function DogsFragment({
                       {
                         width: `${dog.score}%`,
                         backgroundColor:
-                          dog.score < 80 ? "#C09A14" : colors.primary,
+                          dog.score < 80 ? colors.tertiaryDark : colors.primary,
                       },
                     ]}
                   />
@@ -155,17 +129,17 @@ export function DogsFragment({
         );
       })}
 
-      <Pressable style={styles.addDashed} onPress={onAddDog}>
-        <View style={styles.addCircle}>
-          <FontAwesome5 name="plus" size={19} color={colors.ink} />
-        </View>
-        <Text style={styles.addAnother}>Add another family member</Text>
-      </Pressable>
+      <AddFamilyMemberButton
+        label="Add family member"
+        onPress={onAddDog}
+        style={styles.addFamilyButton}
+      />
       <View style={styles.readiness}>
         <View>
           <Text style={styles.readinessTitle}>Passport Readiness</Text>
           <Text style={styles.readinessText}>
-            All 3 family profiles have verified EU{`\n`}documents.
+            All {dogs.length} family profile{dogs.length === 1 ? "" : "s"}{" "}
+            {dogs.length === 1 ? "has" : "have"} verified digital documents.
           </Text>
         </View>
         <FontAwesome5 name="shield-alt" size={29} color={colors.primary} />
@@ -189,24 +163,13 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 16,
   },
-  addButton: {
-    marginTop: 8,
-    height: 38,
-    borderRadius: 11,
-    backgroundColor: colors.primary,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 7,
-  },
-  addText: { color: "#FFFFFF", fontFamily: fontFamily.medium, fontSize: 13 },
   search: {
     marginTop: 13,
     height: 42,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#B9CBCD",
-    backgroundColor: "#FFFFFF",
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.card,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
@@ -221,12 +184,8 @@ const styles = StyleSheet.create({
   dogCard: {
     minHeight: 100,
     marginTop: 11,
-    borderRadius: 11,
-    borderWidth: 1,
-    borderColor: "#B9CBCD",
-    backgroundColor: "#FFFFFF",
-    padding: 11,
     flexDirection: "row",
+    ...cardSurface,
   },
   dogCardActive: { borderWidth: 2, borderColor: colors.primary },
   photo: { width: 76, height: 76, borderRadius: 38 },
@@ -245,19 +204,23 @@ const styles = StyleSheet.create({
     gap: 3,
     alignSelf: "flex-start",
     borderRadius: 11,
-    backgroundColor: "#DCE8FA",
+    backgroundColor: colors.surfaceRaised,
     paddingHorizontal: 7,
     paddingVertical: 4,
   },
-  statusText: { color: "#526077", fontFamily: fontFamily.medium, fontSize: 8 },
+  statusText: {
+    color: colors.body,
+    fontFamily: fontFamily.medium,
+    fontSize: 8,
+  },
   statusDue: { backgroundColor: "transparent", paddingHorizontal: 0 },
-  statusDueText: { color: "#8B6D00" },
+  statusDueText: { color: colors.tertiary },
   scoreRow: { marginTop: "auto", flexDirection: "row", alignItems: "center" },
   track: {
     flex: 1,
     height: 5,
     borderRadius: 3,
-    backgroundColor: "#E2E8E9",
+    backgroundColor: colors.border,
     overflow: "hidden",
   },
   fill: { height: "100%", borderRadius: 3 },
@@ -267,49 +230,28 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bold,
     fontSize: 9,
   },
-  scoreDue: { color: "#796100" },
-  addDashed: {
+  scoreDue: { color: colors.tertiary },
+  addFamilyButton: {
     marginTop: 11,
-    height: 62,
-    borderRadius: 11,
-    borderWidth: 1.5,
-    borderStyle: "dashed",
-    borderColor: "#B6C5C8",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  addCircle: {
-    width: 29,
-    height: 29,
-    borderRadius: 15,
-    backgroundColor: "#EDF3F4",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  addAnother: {
-    marginTop: 3,
-    color: colors.body,
-    fontFamily: fontFamily.medium,
-    fontSize: 9,
   },
   readiness: {
     marginTop: 13,
     minHeight: 78,
     borderRadius: 14,
-    backgroundColor: "#DCE8FA",
+    backgroundColor: colors.surfaceRaised,
     padding: 13,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   readinessTitle: {
-    color: "#1B2D49",
+    color: colors.inkSoft,
     fontFamily: fontFamily.bold,
     fontSize: 15,
   },
   readinessText: {
     marginTop: 3,
-    color: "#40516A",
+    color: colors.body,
     fontFamily: fontFamily.regular,
     fontSize: 10,
     lineHeight: 15,
@@ -318,7 +260,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     minHeight: 65,
     borderRadius: 14,
-    backgroundColor: "#E8EEEE",
+    backgroundColor: colors.surfaceRaised,
     alignItems: "center",
     justifyContent: "center",
   },

@@ -1,17 +1,12 @@
-import { FontAwesome5 } from "@expo/vector-icons";
-import { useRef, useState } from "react";
-import {
-  Animated,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { FontAwesome5, Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
+import { Image, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { AnimatedSegmentedControl } from "../components/AnimatedSegmentedControl";
+import { IOSSwitch } from "../components/IOSSwitch";
+import { Text, TextInput } from "../components/Typography";
 
 import { colors } from "../theme/colors";
+import { cardSurface } from "../theme/cards";
 import { fontFamily } from "../theme/typography";
 
 const genderOptions = ["Male", "Female"] as const;
@@ -68,14 +63,6 @@ export function AddDogScreen({
   const [isSterilized, setSterilized] = useState(formData.isSterilized);
   const [primaryColor, setPrimaryColor] = useState(formData.primaryColor);
   const [markings, setMarkings] = useState(formData.markings);
-  const [genderSegmentWidth, setGenderSegmentWidth] = useState(0);
-  const genderAnimation = useRef(
-    new Animated.Value(genderOptions.indexOf(formData.gender)),
-  ).current;
-  const genderOptionWidth =
-    genderSegmentWidth > 0
-      ? (genderSegmentWidth - 10) / genderOptions.length
-      : 0;
 
   const updateFormData = (updates: Partial<AddDogFormData>) => {
     onFormChange({
@@ -91,17 +78,6 @@ export function AddDogScreen({
     });
   };
 
-  const handleGenderPress = (nextGender: Gender) => {
-    setGender(nextGender);
-    updateFormData({ gender: nextGender });
-    Animated.spring(genderAnimation, {
-      toValue: genderOptions.indexOf(nextGender),
-      useNativeDriver: true,
-      friction: 8,
-      tension: 90,
-    }).start();
-  };
-
   return (
     <View style={styles.screen}>
       <ScrollView
@@ -110,7 +86,7 @@ export function AddDogScreen({
         contentContainerStyle={styles.content}
       >
         <View style={styles.headerRow}>
-          <Text style={styles.stepText}>Step 2 of 4</Text>
+          <Text style={styles.stepText}>Step 2 of 6</Text>
           <Text style={styles.headerLabel}>Physical Identity</Text>
         </View>
 
@@ -133,46 +109,16 @@ export function AddDogScreen({
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Gender</Text>
-          <View
-            style={styles.genderSegment}
-            onLayout={(event) =>
-              setGenderSegmentWidth(event.nativeEvent.layout.width)
-            }
-          >
-            {genderOptionWidth > 0 ? (
-              <Animated.View
-                style={[
-                  styles.genderIndicator,
-                  {
-                    width: genderOptionWidth,
-                    transform: [
-                      {
-                        translateX: genderAnimation.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0, genderOptionWidth],
-                        }),
-                      },
-                    ],
-                  },
-                ]}
-              />
-            ) : null}
-            {genderOptions.map((option) => (
-              <Pressable
-                key={option}
-                style={styles.genderOption}
-                onPress={() => handleGenderPress(option)}
-              >
-                <Text
-                  style={[
-                    styles.genderText,
-                    gender === option && styles.genderTextActive,
-                  ]}
-                >
-                  {option}
-                </Text>
-              </Pressable>
-            ))}
+          <View style={styles.genderControl}>
+            <AnimatedSegmentedControl
+              accessibilityLabel="Gender"
+              onChange={(nextGender) => {
+                setGender(nextGender);
+                updateFormData({ gender: nextGender });
+              }}
+              options={genderOptions}
+              value={gender}
+            />
           </View>
         </View>
 
@@ -217,35 +163,14 @@ export function AddDogScreen({
               Have I been neutered or spayed?
             </Text>
           </View>
-          <Text style={styles.switchLabel}>No</Text>
-          <Pressable
-            accessibilityRole="switch"
-            accessibilityState={{ checked: isSterilized }}
-            onPress={() => {
-              const nextValue = !isSterilized;
+          <IOSSwitch
+            accessibilityLabel="Sterilization status"
+            value={isSterilized}
+            onValueChange={(nextValue) => {
               setSterilized(nextValue);
               updateFormData({ isSterilized: nextValue });
             }}
-            style={[
-              styles.iosSwitchTrack,
-              isSterilized && styles.iosSwitchTrackActive,
-            ]}
-          >
-            <Animated.View
-              style={[
-                styles.iosSwitchThumb,
-                isSterilized && styles.iosSwitchThumbActive,
-              ]}
-            />
-          </Pressable>
-          <Text
-            style={[
-              styles.switchLabel,
-              isSterilized && styles.switchLabelActive,
-            ]}
-          >
-            Yes
-          </Text>
+          />
         </View>
 
         <View style={styles.card}>
@@ -255,7 +180,7 @@ export function AddDogScreen({
             <TextInput
               style={styles.input}
               placeholder="Select or type color"
-              placeholderTextColor="#6E7B86"
+              placeholderTextColor={colors.body}
               value={primaryColor}
               onChangeText={(value) => {
                 setPrimaryColor(value);
@@ -296,7 +221,7 @@ export function AddDogScreen({
           <TextInput
             style={[styles.input, styles.markingsInput]}
             placeholder="Scars, spots, unique coat pattern..."
-            placeholderTextColor="#9AA8AD"
+            placeholderTextColor={colors.borderStrong}
             value={markings}
             onChangeText={(value) => {
               setMarkings(value);
@@ -312,7 +237,8 @@ export function AddDogScreen({
           <Text style={styles.backText}>Back</Text>
         </Pressable>
         <Pressable style={styles.nextButton} onPress={onNextPress}>
-          <Text style={styles.nextText}>Next</Text>
+          <Text style={styles.nextText}>Continue</Text>
+          <Ionicons name="arrow-forward" size={18} color={colors.card} />
         </Pressable>
       </View>
     </View>
@@ -347,44 +273,18 @@ function MeasurementCard<T extends string>({
         <TextInput
           style={styles.input}
           placeholder={placeholder}
-          placeholderTextColor="#6B7280"
+          placeholderTextColor={colors.body}
           keyboardType="decimal-pad"
           value={value}
           onChangeText={(text) => onChangeText(text.replace(/[^0-9.]/g, ""))}
         />
         <View style={styles.unitToggle}>
-          <Pressable
-            style={[
-              styles.unitButton,
-              unit === firstUnit && styles.unitButtonActive,
-            ]}
-            onPress={() => onUnitChange(firstUnit)}
-          >
-            <Text
-              style={[
-                styles.unitText,
-                unit === firstUnit && styles.unitTextActive,
-              ]}
-            >
-              {firstUnit}
-            </Text>
-          </Pressable>
-          <Pressable
-            style={[
-              styles.unitButton,
-              unit === secondUnit && styles.unitButtonActive,
-            ]}
-            onPress={() => onUnitChange(secondUnit)}
-          >
-            <Text
-              style={[
-                styles.unitText,
-                unit === secondUnit && styles.unitTextActive,
-              ]}
-            >
-              {secondUnit}
-            </Text>
-          </Pressable>
+          <AnimatedSegmentedControl
+            compact
+            onChange={onUnitChange}
+            options={[firstUnit, secondUnit]}
+            value={unit}
+          />
         </View>
       </View>
     </View>
@@ -408,23 +308,24 @@ const styles = StyleSheet.create({
   },
   stepText: {
     color: colors.primary,
-    fontSize: 15,
-    fontFamily: fontFamily.semiBold,
+    fontSize: 12,
+    fontFamily: fontFamily.bold,
   },
   headerLabel: {
     color: colors.body,
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: fontFamily.semiBold,
   },
   progressTrack: {
     marginTop: 10,
+    marginBottom: 18,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#DDE5E6",
+    backgroundColor: colors.progressTrack,
     overflow: "hidden",
   },
   progressFill: {
-    width: "50%",
+    width: "33.33%",
     height: "100%",
     backgroundColor: colors.primary,
   },
@@ -432,16 +333,16 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     width: 120,
     height: 120,
-    marginTop: 18,
+    marginTop: 0,
   },
   photoCircle: {
     width: 116,
     height: 116,
     borderRadius: 58,
     borderWidth: 2,
-    borderColor: "#B9CBCD",
+    borderColor: colors.borderStrong,
     overflow: "hidden",
-    backgroundColor: "#DDE5E6",
+    backgroundColor: colors.disabled,
   },
   petPhoto: {
     width: "100%",
@@ -450,55 +351,23 @@ const styles = StyleSheet.create({
   },
   card: {
     marginTop: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#B9CBCD",
-    backgroundColor: colors.card,
-    padding: 12,
+    ...cardSurface,
   },
   cardTitle: {
     color: colors.body,
     fontSize: 14,
     fontFamily: fontFamily.semiBold,
   },
-  genderSegment: {
-    height: 44,
+  genderControl: {
     marginTop: 9,
-    borderRadius: 10,
-    backgroundColor: "#E7EEEE",
-    flexDirection: "row",
-    padding: 5,
-    overflow: "hidden",
-  },
-  genderIndicator: {
-    position: "absolute",
-    top: 5,
-    left: 5,
-    bottom: 5,
-    borderRadius: 8,
-    backgroundColor: colors.primary,
-  },
-  genderOption: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 1,
-  },
-  genderText: {
-    color: colors.body,
-    fontSize: 14,
-    fontFamily: fontFamily.semiBold,
-  },
-  genderTextActive: {
-    color: "#FFFFFF",
   },
   measureInputWrap: {
     height: 40,
     marginTop: 9,
     borderRadius: 9,
     borderWidth: 1,
-    borderColor: "#B9CBCD",
-    backgroundColor: "#F2F8F9",
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.background,
     flexDirection: "row",
     alignItems: "center",
     paddingLeft: 12,
@@ -511,29 +380,8 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   unitToggle: {
+    width: 92,
     height: 36,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 6,
-    gap: 4,
-  },
-  unitButton: {
-    minWidth: 40,
-    height: 28,
-    borderRadius: 6,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  unitButtonActive: {
-    backgroundColor: colors.card,
-  },
-  unitText: {
-    color: colors.body,
-    fontSize: 12,
-    fontFamily: fontFamily.semiBold,
-  },
-  unitTextActive: {
-    color: colors.primary,
   },
   statusCard: {
     flexDirection: "row",
@@ -550,48 +398,13 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontFamily: fontFamily.regular,
   },
-  switchLabel: {
-    color: colors.body,
-    fontSize: 13,
-    fontFamily: fontFamily.medium,
-  },
-  switchLabelActive: {
-    color: colors.primary,
-    fontFamily: fontFamily.extraBold,
-  },
-  iosSwitchTrack: {
-    width: 46,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: "#E7EEEE",
-    justifyContent: "center",
-    paddingHorizontal: 3,
-  },
-  iosSwitchTrackActive: {
-    backgroundColor: "#BFE8E8",
-  },
-  iosSwitchThumb: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: "#FFFFFF",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.12,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  iosSwitchThumbActive: {
-    transform: [{ translateX: 18 }],
-    backgroundColor: colors.primary,
-  },
   colorInputWrap: {
     height: 40,
     marginTop: 9,
     borderRadius: 9,
     borderWidth: 1,
-    borderColor: "#B9CBCD",
-    backgroundColor: "#F2F8F9",
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.background,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 14,
@@ -606,7 +419,7 @@ const styles = StyleSheet.create({
   chip: {
     height: 26,
     borderRadius: 15,
-    backgroundColor: "#DDE5E6",
+    backgroundColor: colors.disabled,
     paddingHorizontal: 12,
     alignItems: "center",
     justifyContent: "center",
@@ -615,29 +428,25 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   chipText: {
-    color: "#596A78",
+    color: colors.body,
     fontSize: 12,
     fontFamily: fontFamily.semiBold,
   },
   chipTextSelected: {
-    color: "#FFFFFF",
+    color: colors.card,
     fontFamily: fontFamily.extraBold,
   },
   markingsCard: {
     marginTop: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#B9CBCD",
-    backgroundColor: colors.card,
-    padding: 12,
+    ...cardSurface,
   },
   markingsInput: {
     minHeight: 44,
     marginTop: 8,
     borderRadius: 9,
     borderWidth: 1,
-    borderColor: "#B9CBCD",
-    backgroundColor: "#F2F8F9",
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.background,
     paddingHorizontal: 12,
     paddingTop: 10,
     textAlignVertical: "top",
@@ -650,15 +459,15 @@ const styles = StyleSheet.create({
     bottom: 0,
     flexDirection: "row",
     gap: 8,
-    paddingHorizontal: 12,
-    paddingTop: 8,
-    paddingBottom: 12,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 8,
     borderTopWidth: 1,
-    borderTopColor: "#B9CBCD",
+    borderTopColor: colors.borderStrong,
     backgroundColor: colors.background,
   },
   backButton: {
-    width: 92,
+    width: 82,
     height: 50,
     borderRadius: 10,
     borderWidth: 1.2,
@@ -669,20 +478,22 @@ const styles = StyleSheet.create({
   },
   backText: {
     color: colors.primary,
-    fontSize: 16,
-    fontFamily: fontFamily.extraBold,
+    fontSize: 14,
+    fontFamily: fontFamily.bold,
   },
   nextButton: {
     flex: 1,
     height: 50,
     borderRadius: 10,
     backgroundColor: colors.primary,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    gap: 8,
   },
   nextText: {
-    color: "#FFFFFF",
-    fontSize: 16,
+    color: colors.card,
+    fontSize: 15,
     fontFamily: fontFamily.extraBold,
   },
 });

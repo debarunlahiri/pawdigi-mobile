@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
     width: 9,
     height: 9,
     borderRadius: 5,
-    backgroundColor: "#C4D0D3",
+    backgroundColor: colors.borderStrong,
   },
   activeDot: {
     width: 24,

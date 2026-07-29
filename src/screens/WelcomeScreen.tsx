@@ -6,14 +6,15 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  Text,
-  TextInput,
   View,
 } from "react-native";
+import { Text, TextInput } from "../components/Typography";
 
 import { FORM_HANDLING_AND_VERIFICATION_ENABLED } from "../config/features";
 import { assets } from "../theme/assets";
 import { colors } from "../theme/colors";
+import { cardSurface } from "../theme/cards";
+import { elevation } from "../theme/elevation";
 import { fontFamily } from "../theme/typography";
 
 type WelcomeScreenProps = {
@@ -73,7 +74,7 @@ export function WelcomeScreen({
             ]}
           >
             <View style={styles.actionIcon}>
-              <Ionicons name="log-in-outline" size={22} color="#FFFFFF" />
+              <Ionicons name="log-in-outline" size={22} color={colors.card} />
             </View>
             <View style={styles.actionCopy}>
               <Text style={styles.primaryButtonText}>
@@ -83,7 +84,7 @@ export function WelcomeScreen({
                 I already have an account
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={22} color="#FFFFFF" />
+            <Ionicons name="chevron-forward" size={22} color={colors.card} />
           </Pressable>
 
           <View style={styles.createCard}>
@@ -116,7 +117,9 @@ export function WelcomeScreen({
 
             {isNamingPet ? (
               <View style={styles.nameSection}>
-                <Text style={styles.nameLabel}>First, what’s your pet’s name?</Text>
+                <Text style={styles.nameLabel}>
+                  First, what’s your pet’s name?
+                </Text>
                 <View
                   style={[
                     styles.inputWrap,
@@ -134,7 +137,7 @@ export function WelcomeScreen({
                     }}
                     onSubmitEditing={handleCreatePress}
                     placeholder="Your pet’s name"
-                    placeholderTextColor="#849092"
+                    placeholderTextColor={colors.body}
                     returnKeyType="go"
                     style={styles.input}
                     value={petName}
@@ -185,11 +188,16 @@ const styles = StyleSheet.create({
     marginTop: 18,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 71,
+    backgroundColor: colors.card,
+    ...elevation.l2,
   },
   logo: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
+    width: 128,
+    height: 128,
+    borderRadius: 64,
   },
   brandName: {
     marginTop: 2,
@@ -220,15 +228,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   primaryButtonPressed: {
-    backgroundColor: "#008F98",
+    backgroundColor: colors.primary,
   },
   secondaryButton: {
     borderWidth: 1.5,
-    borderColor: "#B8D5D7",
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
   },
   secondaryButtonPressed: {
-    backgroundColor: "#F7FCFC",
+    backgroundColor: colors.background,
   },
   actionIcon: {
     width: 36,
@@ -245,7 +253,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   primaryButtonText: {
-    color: "#FFFFFF",
+    color: colors.card,
     fontSize: 15,
     fontFamily: fontFamily.extraBold,
   },
@@ -268,8 +276,9 @@ const styles = StyleSheet.create({
   },
   createCard: {
     overflow: "hidden",
-    borderRadius: 16,
-    backgroundColor: colors.card,
+    ...cardSurface,
+    padding: 0,
+    gap: 0,
   },
   nameSection: {
     paddingHorizontal: 16,
@@ -277,7 +286,7 @@ const styles = StyleSheet.create({
     paddingBottom: 18,
     borderWidth: 1.5,
     borderTopWidth: 0,
-    borderColor: "#B8D5D7",
+    borderColor: colors.borderStrong,
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
   },
@@ -291,7 +300,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     borderRadius: 10,
     borderWidth: 1.3,
-    borderColor: "#BACACD",
+    borderColor: colors.borderStrong,
     backgroundColor: colors.background,
     paddingHorizontal: 14,
     flexDirection: "row",
@@ -299,8 +308,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   inputWrapError: {
-    borderColor: "#B91C1C",
-    backgroundColor: "#FFF7F7",
+    borderColor: colors.error,
+    backgroundColor: colors.background,
   },
   input: {
     flex: 1,
@@ -310,7 +319,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     marginTop: 7,
-    color: "#B91C1C",
+    color: colors.error,
     fontSize: 11,
     fontFamily: fontFamily.medium,
   },

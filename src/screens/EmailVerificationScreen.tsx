@@ -1,16 +1,11 @@
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import {
-  Linking,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Linking, Pressable, StyleSheet, View } from "react-native";
+import { Text, TextInput } from "../components/Typography";
 
 import { FORM_HANDLING_AND_VERIFICATION_ENABLED } from "../config/features";
 import { colors } from "../theme/colors";
+import { cardSurface } from "../theme/cards";
 import { fontFamily } from "../theme/typography";
 
 export type VerificationChannel = "email" | "phone";
@@ -28,8 +23,7 @@ export function EmailVerificationScreen({
   onBackPress,
   onVerified,
 }: EmailVerificationScreenProps) {
-  const [channel, setChannel] =
-    useState<VerificationChannel>(initialChannel);
+  const [channel, setChannel] = useState<VerificationChannel>(initialChannel);
   const [code, setCode] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
   const [message, setMessage] = useState("");
@@ -116,7 +110,7 @@ export function EmailVerificationScreen({
             <Ionicons
               name="mail-outline"
               size={18}
-              color={channel === "email" ? "#FFFFFF" : colors.primary}
+              color={channel === "email" ? colors.card : colors.primary}
             />
             <Text
               style={[
@@ -138,7 +132,7 @@ export function EmailVerificationScreen({
             <Ionicons
               name="call-outline"
               size={18}
-              color={channel === "phone" ? "#FFFFFF" : colors.primary}
+              color={channel === "phone" ? colors.card : colors.primary}
             />
             <Text
               style={[
@@ -159,7 +153,11 @@ export function EmailVerificationScreen({
               pressed && styles.primaryButtonPressed,
             ]}
           >
-            <FontAwesome5 name="external-link-alt" size={17} color="#FFFFFF" />
+            <FontAwesome5
+              name="external-link-alt"
+              size={17}
+              color={colors.card}
+            />
             <Text style={styles.primaryButtonText}>Open Email App</Text>
           </Pressable>
         ) : (
@@ -172,7 +170,7 @@ export function EmailVerificationScreen({
                 setMessage("");
               }}
               placeholder="6-digit code"
-              placeholderTextColor="#849092"
+              placeholderTextColor={colors.body}
               style={styles.codeInput}
               value={code}
             />
@@ -185,7 +183,7 @@ export function EmailVerificationScreen({
               ]}
             >
               <Text style={styles.primaryButtonText}>Verify Phone</Text>
-              <Ionicons name="arrow-forward" size={19} color="#FFFFFF" />
+              <Ionicons name="arrow-forward" size={19} color={colors.card} />
             </Pressable>
           </>
         )}
@@ -226,17 +224,7 @@ const styles = StyleSheet.create({
     maxWidth: 460,
     alignSelf: "center",
     alignItems: "center",
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 22,
-    paddingVertical: 30,
-    backgroundColor: colors.card,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 14 },
-    shadowOpacity: 0.14,
-    shadowRadius: 22,
-    elevation: 5,
+    ...cardSurface,
   },
   iconCircle: {
     width: 72,
@@ -266,7 +254,7 @@ const styles = StyleSheet.create({
     marginTop: 22,
     padding: 4,
     borderRadius: 12,
-    backgroundColor: "#E8F2F3",
+    backgroundColor: colors.surfaceSubtle,
     flexDirection: "row",
     gap: 4,
   },
@@ -288,7 +276,7 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.semiBold,
   },
   channelTextSelected: {
-    color: "#FFFFFF",
+    color: colors.card,
   },
   primaryButton: {
     width: "100%",
@@ -308,7 +296,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.ink,
   },
   primaryButtonText: {
-    color: "#FFFFFF",
+    color: colors.card,
     fontSize: 15,
     fontFamily: fontFamily.semiBold,
   },
@@ -318,7 +306,7 @@ const styles = StyleSheet.create({
     marginTop: 22,
     borderRadius: 11,
     borderWidth: 1.3,
-    borderColor: "#BACACD",
+    borderColor: colors.borderStrong,
     color: colors.ink,
     backgroundColor: colors.background,
     fontSize: 20,
@@ -350,7 +338,7 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.semiBold,
   },
   resendDisabled: {
-    color: "#8A9699",
+    color: colors.borderStrong,
   },
   backRow: {
     marginTop: 18,

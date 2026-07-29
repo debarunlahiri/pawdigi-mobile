@@ -1,26 +1,13 @@
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { IOSSwitch } from "../components/IOSSwitch";
+import { Text, TextInput } from "../components/Typography";
 
 import { colors } from "../theme/colors";
+import { cardSurface } from "../theme/cards";
 import { fontFamily } from "../theme/typography";
-import { FORM_HANDLING_AND_VERIFICATION_ENABLED } from "../config/features";
 
-const familyRoles = [
-  "Mom",
-  "Dad",
-  "Bro",
-  "Sis",
-  "Guardian",
-  "My Vet",
-] as const;
+const familyRoles = ["Mom", "Dad", "Bro", "Sis", "Guardian", "My Vet"] as const;
 
 export type FamilyRole = (typeof familyRoles)[number];
 
@@ -71,55 +58,8 @@ export function FinalIdentificationScreen({
   onBack,
   onComplete,
 }: Props) {
-  const [submitted, setSubmitted] = useState(false);
-  const hasValidFamilyMember = formData.familyMembers.some(
-    (member) => member.name.trim() && member.contact.trim(),
-  );
-
   const update = (updates: Partial<FinalIdentificationFormData>) =>
     onFormChange({ ...formData, ...updates });
-
-  const updateFamilyMember = (
-    id: string,
-    updates: Partial<FamilyMember>,
-  ) => {
-    update({
-      familyMembers: formData.familyMembers.map((member) =>
-        member.id === id ? { ...member, ...updates } : member,
-      ),
-    });
-  };
-
-  const markPrimary = (id: string) => {
-    update({
-      familyMembers: formData.familyMembers.map((member) => ({
-        ...member,
-        isPrimary: member.id === id,
-      })),
-    });
-  };
-
-  const addFamilyMember = () => {
-    update({
-      familyMembers: [
-        ...formData.familyMembers,
-        {
-          id: `family-${Date.now()}`,
-          name: "",
-          role: "Guardian",
-          contact: "",
-          isPrimary: false,
-        },
-      ],
-    });
-  };
-
-  const handleComplete = () => {
-    setSubmitted(true);
-    if (!FORM_HANDLING_AND_VERIFICATION_ENABLED || hasValidFamilyMember) {
-      onComplete();
-    }
-  };
 
   return (
     <View style={styles.screen}>
@@ -129,8 +69,8 @@ export function FinalIdentificationScreen({
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.headerRow}>
-          <Text style={styles.title}>My identifiers & family</Text>
-          <Text style={styles.complete}>Step 3 of 4</Text>
+          <Text style={styles.step}>Step 3 of 6</Text>
+          <Text style={styles.headerLabel}>Identifiers & Family</Text>
         </View>
         <View style={styles.progressTrack}>
           <View style={styles.progressFill} />
@@ -142,24 +82,11 @@ export function FinalIdentificationScreen({
               <Text style={styles.label}>Do I have a microchip?</Text>
               <Text style={styles.helper}>Add it to my secure identity.</Text>
             </View>
-            <Pressable
-              accessibilityRole="switch"
-              accessibilityState={{ checked: formData.hasMicrochip }}
-              onPress={() =>
-                update({ hasMicrochip: !formData.hasMicrochip })
-              }
-              style={[
-                styles.switchTrack,
-                formData.hasMicrochip && styles.switchTrackActive,
-              ]}
-            >
-              <View
-                style={[
-                  styles.switchThumb,
-                  formData.hasMicrochip && styles.switchThumbActive,
-                ]}
-              />
-            </Pressable>
+            <IOSSwitch
+              accessibilityLabel="Microchip status"
+              value={formData.hasMicrochip}
+              onValueChange={(hasMicrochip) => update({ hasMicrochip })}
+            />
           </View>
 
           {formData.hasMicrochip ? (
@@ -204,144 +131,15 @@ export function FinalIdentificationScreen({
             value={formData.registrationBody}
           />
         </Section>
-
-        <Section icon="users" title="My family">
-          <Text style={styles.familyHint}>
-            Add at least one person with contact details. If I have more than
-            one, choose my primary caregiver.
-          </Text>
-
-          {formData.familyMembers.map((member, index) => (
-            <View key={member.id} style={styles.familyCard}>
-              <View style={styles.familyHeader}>
-                <Text style={styles.familyNumber}>
-                  {index === 0 ? "Caregiver" : `Family member ${index + 1}`}
-                </Text>
-                <Pressable
-                  onPress={() => markPrimary(member.id)}
-                  style={[
-                    styles.primaryBadge,
-                    member.isPrimary && styles.primaryBadgeActive,
-                  ]}
-                >
-                  <Ionicons
-                    name={
-                      member.isPrimary
-                        ? "checkmark-circle"
-                        : "ellipse-outline"
-                    }
-                    size={15}
-                    color={member.isPrimary ? "#FFFFFF" : colors.primary}
-                  />
-                  <Text
-                    style={[
-                      styles.primaryBadgeText,
-                      member.isPrimary && styles.primaryBadgeTextActive,
-                    ]}
-                  >
-                    Primary
-                  </Text>
-                </Pressable>
-              </View>
-
-              <Text style={styles.label}>Relationship to me</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.roleRow}
-              >
-                {familyRoles.map((role) => (
-                  <Pressable
-                    key={role}
-                    onPress={() => updateFamilyMember(member.id, { role })}
-                    style={[
-                      styles.roleChip,
-                      member.role === role && styles.roleChipActive,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.roleText,
-                        member.role === role && styles.roleTextActive,
-                      ]}
-                    >
-                      {role}
-                    </Text>
-                  </Pressable>
-                ))}
-              </ScrollView>
-
-              <Text style={styles.label}>Name</Text>
-              <Field
-                icon="user"
-                onChangeText={(name) => updateFamilyMember(member.id, { name })}
-                placeholder="Full name"
-                value={member.name}
-              />
-
-              <Text style={styles.label}>
-                {member.role === "My Vet" ? "Vet contact details" : "Contact"}
-              </Text>
-              <Field
-                icon="address-book"
-                onChangeText={(contact) =>
-                  updateFamilyMember(member.id, { contact })
-                }
-                placeholder="Phone number or email"
-                value={member.contact}
-              />
-
-              {formData.familyMembers.length > 1 ? (
-                <Pressable
-                  onPress={() => {
-                    const remainingMembers = formData.familyMembers.filter(
-                      (item) => item.id !== member.id,
-                    );
-                    const hasPrimary = remainingMembers.some(
-                      (item) => item.isPrimary,
-                    );
-
-                    update({
-                      familyMembers: remainingMembers.map((item, itemIndex) => ({
-                        ...item,
-                        isPrimary:
-                          item.isPrimary || (!hasPrimary && itemIndex === 0),
-                      })),
-                    });
-                  }}
-                  style={styles.removeButton}
-                >
-                  <Ionicons
-                    name="trash-outline"
-                    size={15}
-                    color="#B91C1C"
-                  />
-                  <Text style={styles.removeText}>Remove</Text>
-                </Pressable>
-              ) : null}
-            </View>
-          ))}
-
-          {submitted && !hasValidFamilyMember ? (
-            <Text style={styles.errorText}>
-              Add a family member’s name and contact details.
-            </Text>
-          ) : null}
-
-          <Pressable onPress={addFamilyMember} style={styles.addButton}>
-            <Ionicons name="person-add" size={17} color={colors.primary} />
-            <Text style={styles.addButtonText}>Add another family member</Text>
-          </Pressable>
-        </Section>
       </ScrollView>
 
       <View style={styles.bottomBar}>
         <Pressable style={styles.backButton} onPress={onBack}>
           <Text style={styles.backButtonText}>Back</Text>
         </Pressable>
-        <Pressable style={styles.button} onPress={handleComplete}>
-          <Text style={styles.buttonText}>Create My Passport</Text>
-          <FontAwesome5 name="arrow-right" size={17} color="#FFFFFF" />
+        <Pressable style={styles.button} onPress={onComplete}>
+          <Text style={styles.buttonText}>Continue</Text>
+          <Ionicons name="arrow-forward" size={18} color={colors.card} />
         </Pressable>
       </View>
     </View>
@@ -354,10 +152,10 @@ function Field({
 }: React.ComponentProps<typeof TextInput> & { icon: string }) {
   return (
     <View style={styles.inputWrap}>
-      <FontAwesome5 name={icon} size={14} color="#6F7D80" />
+      <FontAwesome5 name={icon} size={14} color={colors.body} />
       <TextInput
         {...props}
-        placeholderTextColor="#737D8D"
+        placeholderTextColor={colors.body}
         style={styles.input}
       />
     </View>
@@ -377,7 +175,7 @@ function Section({
     <View style={styles.card}>
       <View style={styles.sectionHeader}>
         <View style={styles.iconBox}>
-          <FontAwesome5 name={icon} size={14} color="#FFFFFF" />
+          <FontAwesome5 name={icon} size={14} color={colors.card} />
         </View>
         <Text style={styles.sectionTitle}>{title}</Text>
       </View>
@@ -391,17 +189,17 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16, paddingBottom: 82 },
   headerRow: {
     flexDirection: "row",
-    alignItems: "flex-end",
+    alignItems: "center",
     justifyContent: "space-between",
   },
-  title: {
-    color: colors.ink,
-    fontFamily: fontFamily.bold,
-    fontSize: 19,
-  },
-  complete: {
+  step: {
     color: colors.primary,
     fontFamily: fontFamily.bold,
+    fontSize: 12,
+  },
+  headerLabel: {
+    color: colors.body,
+    fontFamily: fontFamily.semiBold,
     fontSize: 12,
   },
   progressTrack: {
@@ -413,17 +211,13 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   progressFill: {
-    width: "75%",
+    width: "50%",
     height: "100%",
     backgroundColor: colors.primary,
   },
   card: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: "#B8C9CC",
-    borderRadius: 14,
-    padding: 14,
     marginBottom: 14,
+    ...cardSurface,
   },
   sectionHeader: {
     flexDirection: "row",
@@ -461,8 +255,8 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 10,
     borderWidth: 1.2,
-    borderColor: "#B9CBCD",
-    backgroundColor: "#F5FAFB",
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.background,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 13,
@@ -480,49 +274,54 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   switchCopy: { flex: 1 },
-  switchTrack: {
-    width: 48,
-    height: 28,
-    borderRadius: 14,
-    padding: 3,
-    backgroundColor: "#CBD5D7",
-  },
-  switchTrackActive: { backgroundColor: colors.primary },
-  switchThumb: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: "#FFFFFF",
-  },
-  switchThumbActive: { transform: [{ translateX: 20 }] },
   familyHint: {
     color: colors.body,
     fontSize: 12,
     lineHeight: 18,
     fontFamily: fontFamily.regular,
+    paddingHorizontal: 2,
   },
   familyCard: {
-    marginTop: 14,
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: "#F7FBFB",
-    borderWidth: 1,
-    borderColor: colors.border,
+    marginTop: 16,
+    ...cardSurface,
   },
   familyHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surfaceRaised,
+  },
+  familyIdentity: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  familyAvatar: {
+    width: 38,
+    height: 38,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 12,
+    backgroundColor: colors.paleTeal,
   },
   familyNumber: {
     color: colors.ink,
     fontSize: 14,
     fontFamily: fontFamily.bold,
   },
+  familyStatus: {
+    marginTop: 2,
+    color: colors.body,
+    fontSize: 10,
+    fontFamily: fontFamily.regular,
+  },
   primaryBadge: {
-    height: 28,
-    paddingHorizontal: 9,
-    borderRadius: 14,
+    height: 30,
+    paddingHorizontal: 10,
+    borderRadius: 15,
     borderWidth: 1,
     borderColor: colors.primary,
     flexDirection: "row",
@@ -535,19 +334,25 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: fontFamily.semiBold,
   },
-  primaryBadgeTextActive: { color: "#FFFFFF" },
-  roleRow: { gap: 7 },
+  primaryBadgeTextActive: { color: colors.card },
+  roleRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 7,
+  },
   roleChip: {
-    paddingHorizontal: 11,
-    paddingVertical: 7,
-    borderRadius: 14,
+    minHeight: 34,
+    paddingHorizontal: 12,
+    borderRadius: 17,
     borderWidth: 1,
-    borderColor: "#B9CBCD",
-    backgroundColor: colors.card,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surfaceMuted,
+    alignItems: "center",
+    justifyContent: "center",
   },
   roleChipActive: {
     borderColor: colors.primary,
-    backgroundColor: colors.paleTeal,
+    backgroundColor: colors.secondaryLight,
   },
   roleText: {
     color: colors.body,
@@ -566,16 +371,18 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   removeText: {
-    color: "#B91C1C",
+    color: colors.error,
     fontSize: 11,
     fontFamily: fontFamily.semiBold,
   },
   addButton: {
-    height: 42,
-    marginTop: 14,
-    borderRadius: 10,
-    borderWidth: 1.2,
+    height: 48,
+    marginTop: 16,
+    borderRadius: 13,
+    borderWidth: 1.5,
+    borderStyle: "dashed",
     borderColor: colors.primary,
+    backgroundColor: colors.paleTeal,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -588,7 +395,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     marginTop: 10,
-    color: "#B91C1C",
+    color: colors.error,
     fontSize: 11,
     fontFamily: fontFamily.medium,
   },
@@ -600,9 +407,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 8,
-    backgroundColor: "rgba(241,250,250,0.98)",
+    backgroundColor: "rgba(245,250,251,0.98)",
     borderTopWidth: 1,
-    borderTopColor: "#E5EEEE",
+    borderTopColor: colors.surfaceRaised,
     flexDirection: "row",
     gap: 8,
   },
@@ -632,7 +439,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   buttonText: {
-    color: "#FFFFFF",
+    color: colors.card,
     fontFamily: fontFamily.bold,
     fontSize: 15,
   },

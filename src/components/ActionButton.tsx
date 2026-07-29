@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
+import { Text } from "./Typography";
 
 import { colors } from "../theme/colors";
 import { fontFamily } from "../theme/typography";
@@ -32,7 +33,7 @@ export function ActionButton({ label, variant, onPress }: ActionButtonProps) {
         {label}
       </Text>
       {isPrimary ? (
-        <Ionicons name="arrow-forward" size={24} color="#FFFFFF" />
+        <Ionicons name="arrow-forward" size={24} color={colors.card} />
       ) : null}
     </Pressable>
   );
@@ -55,18 +56,18 @@ const styles = StyleSheet.create({
   },
   secondary: {
     borderWidth: 1.5,
-    borderColor: "#BACACD",
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
   },
   secondaryPressed: {
-    backgroundColor: "#F8FBFB",
+    backgroundColor: colors.background,
   },
   label: {
     fontSize: 15,
     fontFamily: fontFamily.extraBold,
   },
   primaryLabel: {
-    color: "#FFFFFF",
+    color: colors.card,
   },
   secondaryLabel: {
     color: colors.primary,

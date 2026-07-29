@@ -1,14 +1,11 @@
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Text, TextInput } from "../components/Typography";
+import { AnimatedSegmentedControl } from "../components/AnimatedSegmentedControl";
 
 import { colors } from "../theme/colors";
+import { cardSurface } from "../theme/cards";
+import { elevation } from "../theme/elevation";
 import { fontFamily } from "../theme/typography";
 
 const identityOptions = [
@@ -98,7 +95,7 @@ export function SocialPersonalityScreen({
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.headerRow}>
-          <Text style={styles.step}>Step 4 of 4</Text>
+          <Text style={styles.step}>Step 4 of 6</Text>
           <Text style={styles.headerLabel}>My Social Side</Text>
         </View>
         <View style={styles.progressTrack}>
@@ -138,7 +135,12 @@ export function SocialPersonalityScreen({
         </Section>
 
         <Section icon="paw" title="I identify myself as">
-          <View style={styles.identityGrid}>
+          <ScrollView
+            contentContainerStyle={styles.identityGrid}
+            nestedScrollEnabled
+            showsVerticalScrollIndicator
+            style={styles.identityList}
+          >
             {identityOptions.map((option) => {
               const selected = formData.identity === option;
               return (
@@ -166,14 +168,14 @@ export function SocialPersonalityScreen({
                 </Pressable>
               );
             })}
-          </View>
+          </ScrollView>
 
           {formData.identity === "Something else" ? (
             <TextInput
               autoCapitalize="sentences"
               onChangeText={(customIdentity) => update({ customIdentity })}
               placeholder="Tell us your own title"
-              placeholderTextColor="#7B898B"
+              placeholderTextColor={colors.body}
               style={styles.customInput}
               value={formData.customIdentity}
             />
@@ -250,8 +252,8 @@ export function SocialPersonalityScreen({
           <Text style={styles.backButtonText}>Back</Text>
         </Pressable>
         <Pressable onPress={onComplete} style={styles.completeButton}>
-          <Text style={styles.completeButtonText}>Finish My Profile</Text>
-          <Ionicons name="sparkles" size={18} color="#FFFFFF" />
+          <Text style={styles.completeButtonText}>Continue</Text>
+          <Ionicons name="arrow-forward" size={18} color={colors.card} />
         </Pressable>
       </View>
     </View>
@@ -271,7 +273,7 @@ function Section({
     <View style={styles.card}>
       <View style={styles.sectionHeader}>
         <View style={styles.iconCircle}>
-          <FontAwesome5 name={icon} size={14} color="#FFFFFF" />
+          <FontAwesome5 name={icon} size={14} color={colors.card} />
         </View>
         <Text style={styles.sectionTitle}>{title}</Text>
       </View>
@@ -296,7 +298,7 @@ function SocialField({
         <TextInput
           {...props}
           autoCapitalize="none"
-          placeholderTextColor="#7B898B"
+          placeholderTextColor={colors.body}
           style={styles.input}
         />
       </View>
@@ -318,27 +320,12 @@ function PersonalitySelector({
   return (
     <View style={styles.selector}>
       <Text style={styles.selectorLabel}>{label}</Text>
-      <View style={styles.selectorRow}>
-        {options.map((option) => (
-          <Pressable
-            key={option}
-            onPress={() => onChange(option)}
-            style={[
-              styles.selectorOption,
-              value === option && styles.selectorOptionActive,
-            ]}
-          >
-            <Text
-              style={[
-                styles.selectorText,
-                value === option && styles.selectorTextActive,
-              ]}
-            >
-              {option}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+      <AnimatedSegmentedControl
+        accessibilityLabel={label}
+        onChange={onChange}
+        options={options}
+        value={value}
+      />
     </View>
   );
 }
@@ -370,7 +357,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.progressTrack,
   },
   progressFill: {
-    width: "100%",
+    width: "66.67%",
     height: "100%",
     backgroundColor: colors.primary,
   },
@@ -392,11 +379,7 @@ const styles = StyleSheet.create({
   },
   card: {
     marginBottom: 14,
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#B8C9CC",
-    backgroundColor: colors.card,
+    ...cardSurface,
   },
   sectionHeader: {
     marginBottom: 10,
@@ -435,8 +418,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 13,
     borderRadius: 10,
     borderWidth: 1.2,
-    borderColor: "#B9CBCD",
-    backgroundColor: "#F5FAFB",
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.background,
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
@@ -448,14 +431,20 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.regular,
     paddingVertical: 0,
   },
-  identityGrid: { gap: 8 },
+  identityList: {
+    height: 242,
+  },
+  identityGrid: {
+    gap: 8,
+    paddingRight: 4,
+  },
   identityOption: {
-    minHeight: 42,
+    height: 42,
     paddingHorizontal: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#CBD7D9",
-    backgroundColor: "#F8FBFB",
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.background,
     flexDirection: "row",
     alignItems: "center",
     gap: 9,
@@ -479,64 +468,77 @@ const styles = StyleSheet.create({
     paddingHorizontal: 13,
     borderRadius: 10,
     borderWidth: 1.2,
-    borderColor: "#B9CBCD",
+    borderColor: colors.borderStrong,
     color: colors.ink,
-    backgroundColor: "#F5FAFB",
+    backgroundColor: colors.background,
     fontSize: 13,
     fontFamily: fontFamily.regular,
   },
-  selector: { marginBottom: 16 },
+  selector: {
+    marginBottom: 18,
+  },
   selectorLabel: {
-    marginBottom: 7,
-    color: colors.body,
-    fontSize: 12,
-    fontFamily: fontFamily.semiBold,
+    marginBottom: 8,
+    color: colors.ink,
+    fontSize: 13,
+    fontFamily: fontFamily.bold,
   },
   selectorRow: {
+    height: 46,
     flexDirection: "row",
-    gap: 6,
+    gap: 4,
+    padding: 4,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: 13,
+    backgroundColor: colors.surfaceMuted,
   },
   selectorOption: {
     flex: 1,
-    minHeight: 38,
+    height: 36,
     paddingHorizontal: 4,
-    borderRadius: 9,
-    borderWidth: 1,
-    borderColor: "#CBD7D9",
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#F8FBFB",
+    backgroundColor: "transparent",
+    zIndex: 1,
   },
-  selectorOptionActive: {
-    borderColor: colors.primary,
+  selectorIndicator: {
+    position: "absolute",
+    left: 4,
+    top: 4,
+    height: 36,
+    borderRadius: 10,
     backgroundColor: colors.primary,
+    ...elevation.l1,
   },
   selectorText: {
     color: colors.body,
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: fontFamily.medium,
     textAlign: "center",
   },
   selectorTextActive: {
-    color: "#FFFFFF",
+    color: colors.card,
     fontFamily: fontFamily.bold,
   },
   sociabilityGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
+    marginTop: 2,
   },
   sociabilityOption: {
-    width: "48%",
-    minHeight: 40,
-    paddingHorizontal: 10,
-    borderRadius: 10,
+    width: "48.7%",
+    height: 46,
+    paddingHorizontal: 12,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#CBD7D9",
-    backgroundColor: "#F8FBFB",
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surfaceMuted,
     flexDirection: "row",
     alignItems: "center",
-    gap: 7,
+    gap: 8,
   },
   bottomBar: {
     position: "absolute",
@@ -546,9 +548,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 8,
-    backgroundColor: "rgba(241,250,250,0.98)",
+    backgroundColor: "rgba(245,250,251,0.98)",
     borderTopWidth: 1,
-    borderTopColor: "#E5EEEE",
+    borderTopColor: colors.surfaceRaised,
     flexDirection: "row",
     gap: 8,
   },
@@ -578,7 +580,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   completeButtonText: {
-    color: "#FFFFFF",
+    color: colors.card,
     fontSize: 15,
     fontFamily: fontFamily.bold,
   },

@@ -1,20 +1,22 @@
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import { FontAwesome5 } from "@expo/vector-icons";
+import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useState } from "react";
 import {
+  FlatList,
   Image,
+  Keyboard,
   Pressable,
-  ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   View,
 } from "react-native";
+import { Text, TextInput } from "../components/Typography";
+import { DateInput } from "../components/DateInput";
 
 import { colors } from "../theme/colors";
+import { elevation } from "../theme/elevation";
 import { fontFamily } from "../theme/typography";
 import { FORM_HANDLING_AND_VERIFICATION_ENABLED } from "../config/features";
 
@@ -357,6 +359,7 @@ export function NewPassportScreen({
   const [breedQuery, setBreedQuery] = useState("");
   const [breedImages, setBreedImages] = useState<Record<string, string>>({});
   const [isBreedDropdownOpen, setBreedDropdownOpen] = useState(false);
+  const [breedDropdownTop, setBreedDropdownTop] = useState(0);
   const [birthDate, setBirthDate] = useState(formData.birthDate);
   const [selectedBirthDate, setSelectedBirthDate] = useState<Date | null>(
     parseBirthDate(formData.birthDate),
@@ -374,10 +377,9 @@ export function NewPassportScreen({
   const isFormValid = Object.keys(errors).length === 0;
   const showErrors = submitted;
   const activeBreedText = isBreedDropdownOpen ? breedQuery : breed;
-  const filteredBreeds = breedOptions[species]
-    .filter((item) =>
-      item.toLowerCase().includes(breedQuery.trim().toLowerCase()),
-    );
+  const filteredBreeds = breedOptions[species].filter((item) =>
+    item.toLowerCase().includes(breedQuery.trim().toLowerCase()),
+  );
 
   const updateFormData = (updates: Partial<NewPassportFormData>) => {
     onFormChange({
@@ -396,9 +398,9 @@ export function NewPassportScreen({
     }
 
     let isMounted = true;
-    const breedsToFetch = filteredBreeds.slice(0, 10).filter(
-      (item) => dogCeoBreedPaths[item] && !breedImages[item],
-    );
+    const breedsToFetch = filteredBreeds
+      .slice(0, 10)
+      .filter((item) => dogCeoBreedPaths[item] && !breedImages[item]);
 
     breedsToFetch.forEach(async (item) => {
       try {
@@ -485,7 +487,7 @@ export function NewPassportScreen({
   return (
     <View style={styles.screen}>
       <View style={styles.headerRow}>
-        <Text style={styles.stepText}>Step 1 of 4</Text>
+        <Text style={styles.stepText}>Step 1 of 6</Text>
         <Text style={styles.headerLabel}>Primary Identity</Text>
       </View>
 
@@ -508,7 +510,7 @@ export function NewPassportScreen({
           )}
         </Pressable>
         <Pressable style={styles.editPhotoButton} onPress={handlePickPetPhoto}>
-          <FontAwesome5 name="pencil-alt" size={11} color="#FFFFFF" />
+          <FontAwesome5 name="pencil-alt" size={11} color={colors.card} />
         </Pressable>
       </View>
 
@@ -522,7 +524,7 @@ export function NewPassportScreen({
         <TextInput
           style={styles.input}
           placeholder="e.g. Luna"
-          placeholderTextColor="#B7C5C8"
+          placeholderTextColor={colors.borderStrong}
           value={petName}
           autoCapitalize="words"
           returnKeyType="next"
@@ -538,7 +540,12 @@ export function NewPassportScreen({
       ) : null}
 
       <Text style={styles.label}>Breed</Text>
-      <View style={styles.breedField}>
+      <View
+        onLayout={(event) =>
+          setBreedDropdownTop(event.nativeEvent.layout.y + 48)
+        }
+        style={styles.breedField}
+      >
         <Pressable
           style={[
             styles.inputWrap,
@@ -550,11 +557,11 @@ export function NewPassportScreen({
             setBreedDropdownOpen(true);
           }}
         >
-          <FontAwesome5 name="search" size={15} color="#B7C5C8" />
+          <FontAwesome5 name="search" size={15} color={colors.borderStrong} />
           <TextInput
             style={styles.input}
             placeholder="Search breeds..."
-            placeholderTextColor="#B7C5C8"
+            placeholderTextColor={colors.borderStrong}
             value={activeBreedText}
             onFocus={() => {
               setBreedQuery("");
@@ -582,95 +589,31 @@ export function NewPassportScreen({
             <FontAwesome5
               name={isBreedDropdownOpen ? "chevron-up" : "chevron-down"}
               size={12}
-              color="#B7C5C8"
+              color={colors.borderStrong}
             />
           </Pressable>
         </Pressable>
-        {isBreedDropdownOpen ? (
-          <ScrollView
-            style={styles.dropdown}
-            nestedScrollEnabled
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator
-          >
-            {filteredBreeds.map((item) => (
-              <Pressable
-                key={item}
-                style={[
-                  styles.dropdownItem,
-                  breed === item && styles.dropdownItemSelected,
-                ]}
-                onPress={() => {
-                  clearVerification();
-                  setBreed(item);
-                  setBreedQuery("");
-                  setBreedDropdownOpen(false);
-                  updateFormData({ breed: item });
-                }}
-              >
-                <View style={styles.breedThumb}>
-                  {breedImages[item] ? (
-                    <Image
-                      source={{ uri: breedImages[item] }}
-                      style={styles.breedImage}
-                    />
-                  ) : (
-                    <FontAwesome5
-                      name={species === "Canine" ? "dog" : "paw"}
-                      size={15}
-                      color={colors.muted}
-                    />
-                  )}
-                </View>
-                <Text
-                  style={[
-                    styles.dropdownText,
-                    breed === item && styles.dropdownTextSelected,
-                  ]}
-                >
-                  {item}
-                </Text>
-                {breed === item ? (
-                  <FontAwesome5 name="check" size={12} color={colors.primary} />
-                ) : null}
-              </Pressable>
-            ))}
-            {filteredBreeds.length === 0 ? (
-              <Text style={styles.noResultsText}>No matching breeds</Text>
-            ) : null}
-          </ScrollView>
-        ) : null}
       </View>
       {showErrors && errors.breed ? (
         <Text style={styles.errorText}>{errors.breed}</Text>
       ) : null}
 
       <Text style={styles.label}>Date of Birth</Text>
-      <View
-        style={[
-          styles.inputWrap,
-          showErrors && errors.birthDate && styles.inputError,
-        ]}
-      >
-        <TextInput
-          style={styles.input}
-          placeholder="dd/mm/yy"
-          placeholderTextColor={colors.ink}
-          keyboardType="number-pad"
-          maxLength={8}
-          value={birthDate}
-          onChangeText={(value) => {
-            clearVerification();
-            const formattedDate = formatDateInput(value);
-            setBirthDate(formattedDate);
-            setSelectedBirthDate(parseBirthDate(formattedDate));
-            updateFormData({ birthDate: formattedDate });
-          }}
-        />
-        <Pressable onPress={() => setShowDatePicker(true)} hitSlop={10}>
-          <FontAwesome5 name="calendar-alt" size={17} color="#B7C5C8" />
-        </Pressable>
-      </View>
+      <DateInput
+        accessibilityLabel="Choose my date of birth"
+        error={Boolean(showErrors && errors.birthDate)}
+        maxLength={8}
+        onCalendarPress={() => setShowDatePicker(true)}
+        onChangeText={(value) => {
+          clearVerification();
+          const formattedDate = formatDateInput(value);
+          setBirthDate(formattedDate);
+          setSelectedBirthDate(parseBirthDate(formattedDate));
+          updateFormData({ birthDate: formattedDate });
+        }}
+        placeholder="DD/MM/YY"
+        value={birthDate}
+      />
       {showErrors && errors.birthDate ? (
         <Text style={styles.errorText}>{errors.birthDate}</Text>
       ) : null}
@@ -703,14 +646,103 @@ export function NewPassportScreen({
             pressed && styles.continueButtonPressed,
           ]}
         >
-          <Text style={styles.continueText}>Continue My Journey</Text>
-          <FontAwesome5 name="arrow-right" size={18} color="#FFFFFF" />
+          <Text style={styles.continueText}>Continue</Text>
+          <Ionicons name="arrow-forward" size={18} color={colors.card} />
         </Pressable>
 
         {verificationMessage ? (
           <Text style={styles.successText}>{verificationMessage}</Text>
         ) : null}
       </View>
+
+      {isBreedDropdownOpen ? (
+        <Pressable
+          accessibilityLabel="Close breed dropdown"
+          onPress={() => {
+            setBreedDropdownOpen(false);
+            Keyboard.dismiss();
+          }}
+          style={styles.dropdownBackdrop}
+        />
+      ) : null}
+
+      {isBreedDropdownOpen ? (
+        <FlatList
+          data={filteredBreeds}
+          style={[
+            styles.dropdown,
+            {
+              top: breedDropdownTop,
+              height: Math.min(Math.max(filteredBreeds.length, 1) * 58, 348),
+            },
+          ]}
+          contentContainerStyle={styles.dropdownContent}
+          getItemLayout={(_data, index) => ({
+            length: 58,
+            offset: 58 * index,
+            index,
+          })}
+          initialNumToRender={8}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="always"
+          keyExtractor={(item) => item}
+          ListEmptyComponent={
+            <Text style={styles.noResultsText}>No matching breeds</Text>
+          }
+          onScrollBeginDrag={Keyboard.dismiss}
+          renderItem={({ item }) => (
+            <Pressable
+              style={[
+                styles.dropdownItem,
+                breed === item && styles.dropdownItemSelected,
+              ]}
+              onPress={() => {
+                clearVerification();
+                setBreed(item);
+                setBreedQuery("");
+                setBreedDropdownOpen(false);
+                Keyboard.dismiss();
+                updateFormData({ breed: item });
+              }}
+            >
+              <View
+                style={[
+                  styles.breedThumb,
+                  breed === item && styles.breedThumbSelected,
+                ]}
+              >
+                {breedImages[item] ? (
+                  <Image
+                    source={{ uri: breedImages[item] }}
+                    style={styles.breedImage}
+                  />
+                ) : (
+                  <FontAwesome5
+                    name={species === "Canine" ? "dog" : "paw"}
+                    size={18}
+                    color={breed === item ? colors.card : colors.muted}
+                  />
+                )}
+              </View>
+              <Text
+                style={[
+                  styles.dropdownText,
+                  breed === item && styles.dropdownTextSelected,
+                ]}
+              >
+                {item}
+              </Text>
+              {breed === item ? (
+                <View style={styles.selectedCheck}>
+                  <FontAwesome5 name="check" size={11} color={colors.card} />
+                </View>
+              ) : null}
+            </Pressable>
+          )}
+          scrollEnabled={filteredBreeds.length > 6}
+          showsVerticalScrollIndicator
+        />
+      ) : null}
     </View>
   );
 }
@@ -883,28 +915,29 @@ const styles = StyleSheet.create({
   },
   stepText: {
     color: colors.primary,
-    fontSize: 15,
-    fontFamily: fontFamily.semiBold,
+    fontSize: 12,
+    fontFamily: fontFamily.bold,
   },
   headerLabel: {
     color: colors.body,
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: fontFamily.semiBold,
   },
   progressRow: {
     marginTop: 10,
+    marginBottom: 18,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#D8E3E5",
+    backgroundColor: colors.progressTrack,
     overflow: "hidden",
   },
   progressFill: {
-    width: "25%",
+    width: "16.67%",
     height: "100%",
-    backgroundColor: colors.accent,
+    backgroundColor: colors.primary,
   },
   title: {
-    marginTop: 26,
+    marginTop: 8,
     color: colors.ink,
     fontSize: 23,
     lineHeight: 28,
@@ -930,7 +963,7 @@ const styles = StyleSheet.create({
     borderRadius: 58,
     borderWidth: 2,
     borderStyle: "dashed",
-    borderColor: "#B9CBCD",
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     alignItems: "center",
     justifyContent: "center",
@@ -968,7 +1001,7 @@ const styles = StyleSheet.create({
     height: 42,
     borderRadius: 11,
     borderWidth: 1.2,
-    borderColor: "#B9CBCD",
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     flexDirection: "row",
     alignItems: "center",
@@ -976,15 +1009,15 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   breedInputWrap: {
-    zIndex: 4,
+    zIndex: 31,
   },
   breedField: {
     position: "relative",
-    zIndex: 20,
+    zIndex: 30,
   },
   inputError: {
-    borderColor: "#B91C1C",
-    backgroundColor: "#FFF7F7",
+    borderColor: colors.error,
+    backgroundColor: colors.background,
   },
   input: {
     flex: 1,
@@ -995,7 +1028,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     marginTop: 5,
-    color: "#B91C1C",
+    color: colors.error,
     fontSize: 11,
     lineHeight: 14,
     fontFamily: fontFamily.medium,
@@ -1003,7 +1036,7 @@ const styles = StyleSheet.create({
   segmented: {
     height: 44,
     borderRadius: 15,
-    backgroundColor: "#DDE5E6",
+    backgroundColor: colors.disabled,
     flexDirection: "row",
     padding: 4,
     overflow: "hidden",
@@ -1028,33 +1061,47 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.semiBold,
   },
   segmentTextActive: {
-    color: "#FFFFFF",
+    color: colors.card,
   },
   dropdown: {
-    height: 294,
-    marginTop: 4,
-    borderRadius: 12,
+    position: "absolute",
+    left: 12,
+    right: 12,
+    zIndex: 32,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#B9CBCD",
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     overflow: "hidden",
+    ...elevation.l2,
+  },
+  dropdownBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 29,
+  },
+  dropdownContent: {
+    flexGrow: 1,
   },
   dropdownItem: {
-    minHeight: 42,
+    minHeight: 58,
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
-    paddingHorizontal: 14,
+    gap: 13,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
   dropdownItemSelected: {
-    backgroundColor: "#E6F7F7",
+    backgroundColor: colors.paleTeal,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.primary,
+    paddingLeft: 12,
   },
   dropdownText: {
     flex: 1,
     color: colors.body,
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: fontFamily.medium,
   },
   dropdownTextSelected: {
@@ -1062,10 +1109,10 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.extraBold,
   },
   breedThumb: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-    backgroundColor: "#E8F2F3",
+    width: 42,
+    height: 42,
+    borderRadius: 11,
+    backgroundColor: colors.surfaceSubtle,
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
@@ -1073,6 +1120,20 @@ const styles = StyleSheet.create({
   breedImage: {
     width: "100%",
     height: "100%",
+  },
+  breedThumbSelected: {
+    backgroundColor: colors.primary,
+    borderWidth: 2,
+    borderColor: colors.secondaryLight,
+  },
+  selectedCheck: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    ...elevation.l1,
   },
   noResultsText: {
     paddingHorizontal: 14,
@@ -1083,23 +1144,23 @@ const styles = StyleSheet.create({
   },
   continueButton: {
     height: 50,
-    borderRadius: 14,
+    borderRadius: 10,
     backgroundColor: colors.primary,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 10,
+    gap: 8,
   },
   continueButtonPressed: {
     backgroundColor: colors.ink,
   },
   continueButtonDisabled: {
-    backgroundColor: "#8EA6A8",
+    backgroundColor: colors.borderStrong,
   },
   continueText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontFamily: fontFamily.extraBold,
+    color: colors.card,
+    fontSize: 15,
+    fontFamily: fontFamily.bold,
   },
   bottomActions: {
     marginTop: "auto",

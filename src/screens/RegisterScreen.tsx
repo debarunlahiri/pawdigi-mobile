@@ -1,6 +1,10 @@
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -8,16 +12,17 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   View,
 } from "react-native";
+import { Text, TextInput } from "../components/Typography";
+import { DateInput } from "../components/DateInput";
 
 import { AuthFooter } from "../components/AuthFooter";
 import { GoogleIcon } from "../components/GoogleIcon";
 import { FORM_HANDLING_AND_VERIFICATION_ENABLED } from "../config/features";
 import { assets } from "../theme/assets";
 import { colors } from "../theme/colors";
+import { cardSurface } from "../theme/cards";
 import { fontFamily } from "../theme/typography";
 
 type RegisterScreenProps = {
@@ -28,6 +33,7 @@ type RegisterScreenProps = {
     birthDate: string;
     caregiverName: string;
     caregiverContact: string;
+    caregiverPhotoUri: string;
   }) => void;
 };
 
@@ -40,6 +46,7 @@ type RegisterErrors = {
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const birthDatePattern = /^\d{2}\/\d{2}\/\d{2}$/;
+const registrationDraftKey = "@pawdigi/registration-draft";
 
 export function RegisterScreen({
   petName,
@@ -47,18 +54,74 @@ export function RegisterScreen({
   onProfileChange,
 }: RegisterScreenProps) {
   const [birthDate, setBirthDate] = useState("");
+  const [selectedBirthDate, setSelectedBirthDate] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [caregiverName, setCaregiverName] = useState("");
   const [caregiverPhotoUri, setCaregiverPhotoUri] = useState<string>();
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isDraftLoaded, setDraftLoaded] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem(registrationDraftKey)
+      .then((savedDraft) => {
+        if (!savedDraft) return;
+
+        const draft = JSON.parse(savedDraft);
+        const restoredBirthDate =
+          typeof draft.birthDate === "string" ? draft.birthDate : "";
+
+        setBirthDate(restoredBirthDate);
+        setSelectedBirthDate(parseBirthDate(restoredBirthDate));
+        setCaregiverName(
+          typeof draft.caregiverName === "string" ? draft.caregiverName : "",
+        );
+        setCaregiverPhotoUri(
+          typeof draft.caregiverPhotoUri === "string"
+            ? draft.caregiverPhotoUri
+            : undefined,
+        );
+        setPhone(typeof draft.phone === "string" ? draft.phone : "");
+        setEmail(typeof draft.email === "string" ? draft.email : "");
+      })
+      .catch((error) =>
+        console.warn("Unable to restore registration draft", error),
+      )
+      .finally(() => setDraftLoaded(true));
+  }, []);
+
+  useEffect(() => {
+    if (!isDraftLoaded) return;
+
+    AsyncStorage.setItem(
+      registrationDraftKey,
+      JSON.stringify({
+        birthDate,
+        caregiverName,
+        caregiverPhotoUri: caregiverPhotoUri ?? "",
+        phone,
+        email,
+        savedAt: new Date().toISOString(),
+      }),
+    ).catch((error) =>
+      console.warn("Unable to save registration draft", error),
+    );
+  }, [
+    birthDate,
+    caregiverName,
+    caregiverPhotoUri,
+    email,
+    isDraftLoaded,
+    phone,
+  ]);
 
   const errors = useMemo<RegisterErrors>(() => {
     const nextErrors: RegisterErrors = {};
     const trimmedEmail = email.trim();
 
     if (!birthDatePattern.test(birthDate.trim())) {
-      nextErrors.birthDate = "Enter the date as DD/MM/YYYY.";
+      nextErrors.birthDate = "Enter the date as DD/MM/YY.";
     }
 
     if (caregiverName.trim().length < 2) {
@@ -77,8 +140,7 @@ export function RegisterScreen({
   }, [birthDate, caregiverName, email, phone]);
 
   const chooseCaregiverPhoto = async () => {
-    const permission =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return;
 
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -103,6 +165,7 @@ export function RegisterScreen({
         birthDate: birthDate.trim(),
         caregiverName: caregiverName.trim(),
         caregiverContact: email.trim() || phone.trim(),
+        caregiverPhotoUri: caregiverPhotoUri ?? "",
       });
       onVerificationRequired(email.trim() ? "email" : "phone");
     }
@@ -131,38 +194,45 @@ export function RegisterScreen({
           <View style={[styles.inputWrap, styles.readOnlyInput]}>
             <Ionicons name="paw" size={18} color={colors.primary} />
             <Text style={styles.savedName}>{petName}</Text>
-            <Ionicons name="checkmark-circle" size={19} color={colors.primary} />
+            <Ionicons
+              name="checkmark-circle"
+              size={19}
+              color={colors.primary}
+            />
           </View>
 
           <Text style={styles.label}>My date of birth</Text>
-          <View
-            style={[
-              styles.inputWrap,
-              submitted && errors.birthDate && styles.inputError,
-            ]}
-          >
-            <Ionicons name="calendar-outline" size={19} color={colors.muted} />
-            <TextInput
-              keyboardType="number-pad"
-              maxLength={8}
-              onChangeText={(value) => {
-                const digits = value.replace(/\D/g, "").slice(0, 6);
-                const formatted =
-                  digits.length <= 2
-                    ? digits
-                    : digits.length <= 4
-                      ? `${digits.slice(0, 2)}/${digits.slice(2)}`
-                      : `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
-                setBirthDate(formatted);
-              }}
-              placeholder="DD/MM/YY"
-              placeholderTextColor="#7C898B"
-              style={styles.input}
-              value={birthDate}
-            />
-          </View>
+          <DateInput
+            accessibilityLabel="Choose my date of birth"
+            error={Boolean(submitted && errors.birthDate)}
+            maxLength={8}
+            onCalendarPress={() => setShowDatePicker(true)}
+            onChangeText={(value) => {
+              const formatted = formatDateInput(value);
+              setBirthDate(formatted);
+              setSelectedBirthDate(parseBirthDate(formatted));
+            }}
+            placeholder="DD/MM/YY"
+            value={birthDate}
+          />
           {submitted && errors.birthDate ? (
             <Text style={styles.errorText}>{errors.birthDate}</Text>
+          ) : null}
+          {showDatePicker ? (
+            <DateTimePicker
+              display="default"
+              maximumDate={new Date()}
+              mode="date"
+              onChange={(event: DateTimePickerEvent, date?: Date) => {
+                setShowDatePicker(false);
+
+                if (event.type === "set" && date) {
+                  setSelectedBirthDate(date);
+                  setBirthDate(formatDateFromDate(date));
+                }
+              }}
+              value={selectedBirthDate ?? new Date(2020, 0, 1)}
+            />
           ) : null}
 
           <View style={styles.divider} />
@@ -184,7 +254,7 @@ export function RegisterScreen({
                 <FontAwesome5 name="user" size={24} color={colors.primary} />
               )}
               <View style={styles.cameraBadge}>
-                <Ionicons name="camera" size={12} color="#FFFFFF" />
+                <Ionicons name="camera" size={12} color={colors.card} />
               </View>
             </Pressable>
 
@@ -201,7 +271,7 @@ export function RegisterScreen({
                   autoCapitalize="words"
                   onChangeText={setCaregiverName}
                   placeholder="Full name"
-                  placeholderTextColor="#7C898B"
+                  placeholderTextColor={colors.body}
                   style={styles.input}
                   value={caregiverName}
                 />
@@ -228,7 +298,7 @@ export function RegisterScreen({
               keyboardType="phone-pad"
               onChangeText={setPhone}
               placeholder="+91 98765 43210"
-              placeholderTextColor="#7C898B"
+              placeholderTextColor={colors.body}
               style={styles.input}
               value={phone}
             />
@@ -251,7 +321,7 @@ export function RegisterScreen({
               keyboardType="email-address"
               onChangeText={setEmail}
               placeholder="name@example.com"
-              placeholderTextColor="#7C898B"
+              placeholderTextColor={colors.body}
               style={styles.input}
               value={email}
             />
@@ -270,7 +340,7 @@ export function RegisterScreen({
             ]}
           >
             <Text style={styles.primaryButtonText}>Start My PawDigi.life</Text>
-            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+            <Ionicons name="arrow-forward" size={20} color={colors.card} />
           </Pressable>
 
           <View style={styles.orRow}>
@@ -310,6 +380,59 @@ export function RegisterScreen({
   );
 }
 
+function formatDateInput(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 6);
+  const day = digits.slice(0, 2);
+  const month = digits.slice(2, 4);
+  const year = digits.slice(4, 6);
+
+  if (digits.length <= 2) {
+    return day;
+  }
+
+  if (digits.length <= 4) {
+    return `${day}/${month}`;
+  }
+
+  return `${day}/${month}/${year}`;
+}
+
+function formatDateFromDate(date: Date) {
+  const day = `${date.getDate()}`.padStart(2, "0");
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const year = `${date.getFullYear()}`.slice(-2);
+
+  return `${day}/${month}/${year}`;
+}
+
+function parseBirthDate(value: string) {
+  if (!birthDatePattern.test(value)) {
+    return null;
+  }
+
+  const [dayText, monthText, yearText] = value.split("/");
+  const day = Number(dayText);
+  const month = Number(monthText);
+  const currentYear = new Date().getFullYear();
+  const currentCentury = Math.floor(currentYear / 100) * 100;
+  const twoDigitYear = Number(yearText);
+  const year =
+    currentCentury + twoDigitYear > currentYear
+      ? currentCentury + twoDigitYear - 100
+      : currentCentury + twoDigitYear;
+  const date = new Date(year, month - 1, day);
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return date;
+}
+
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
@@ -346,14 +469,7 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 460,
     alignSelf: "center",
-    borderRadius: 18,
-    backgroundColor: colors.card,
-    padding: 18,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.14,
-    shadowRadius: 20,
-    elevation: 4,
+    ...cardSurface,
   },
   sectionTitle: {
     color: colors.ink,
@@ -371,7 +487,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     borderRadius: 10,
     borderWidth: 1.3,
-    borderColor: "#BACACD",
+    borderColor: colors.borderStrong,
     backgroundColor: colors.background,
     paddingHorizontal: 13,
     flexDirection: "row",
@@ -379,7 +495,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   readOnlyInput: {
-    borderColor: "#B8D5D7",
+    borderColor: colors.borderStrong,
     backgroundColor: colors.paleTeal,
   },
   savedName: {
@@ -396,12 +512,12 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   inputError: {
-    borderColor: "#B91C1C",
-    backgroundColor: "#FFF7F7",
+    borderColor: colors.error,
+    backgroundColor: colors.background,
   },
   errorText: {
     marginTop: 5,
-    color: "#B91C1C",
+    color: colors.error,
     fontSize: 11,
     fontFamily: fontFamily.medium,
   },
@@ -420,7 +536,7 @@ const styles = StyleSheet.create({
     height: 62,
     borderRadius: 31,
     borderWidth: 1.3,
-    borderColor: "#B8D5D7",
+    borderColor: colors.borderStrong,
     backgroundColor: colors.paleTeal,
     alignItems: "center",
     justifyContent: "center",
@@ -478,7 +594,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.ink,
   },
   primaryButtonText: {
-    color: "#FFFFFF",
+    color: colors.card,
     fontSize: 16,
     fontFamily: fontFamily.extraBold,
   },
@@ -491,7 +607,7 @@ const styles = StyleSheet.create({
   orLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "#D2DDDF",
+    backgroundColor: colors.borderStrong,
   },
   orText: {
     color: colors.muted,
@@ -508,7 +624,7 @@ const styles = StyleSheet.create({
     height: 42,
     borderRadius: 10,
     borderWidth: 1.3,
-    borderColor: "#BACACD",
+    borderColor: colors.borderStrong,
     backgroundColor: colors.card,
     flexDirection: "row",
     alignItems: "center",
@@ -516,7 +632,7 @@ const styles = StyleSheet.create({
     gap: 9,
   },
   socialButtonPressed: {
-    backgroundColor: "#F5FAFA",
+    backgroundColor: colors.background,
   },
   socialText: {
     color: colors.ink,

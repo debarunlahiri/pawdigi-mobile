@@ -1,8 +1,10 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Text } from "./Typography";
 
 import type { Feature } from "../data/onboarding";
 import { colors } from "../theme/colors";
+import { cardSurface } from "../theme/cards";
 import { fontFamily } from "../theme/typography";
 
 type FeatureCardProps = {
@@ -28,13 +30,8 @@ export function FeatureCard({ feature }: FeatureCardProps) {
 const styles = StyleSheet.create({
   card: {
     minHeight: 132,
-    borderRadius: 13,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.cardSoft,
-    paddingHorizontal: 22,
-    paddingVertical: 16,
     justifyContent: "center",
+    ...cardSurface,
   },
   iconWrap: {
     width: 40,

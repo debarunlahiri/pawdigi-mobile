@@ -1,10 +1,12 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import { Text, TextInput } from "../components/Typography";
 
 import { BrandHeader } from "../components/BrandHeader";
 import { FORM_HANDLING_AND_VERIFICATION_ENABLED } from "../config/features";
 import { colors } from "../theme/colors";
+import { cardSurface } from "../theme/cards";
 import { fontFamily } from "../theme/typography";
 
 type ForgotPasswordScreenProps = {
@@ -54,7 +56,7 @@ export function ForgotPasswordScreen({
 
       <View style={styles.card}>
         <View style={styles.iconBox}>
-          <FontAwesome5 name="undo-alt" size={31} color="#FFFFFF" />
+          <FontAwesome5 name="undo-alt" size={31} color={colors.card} />
         </View>
 
         <Text style={styles.title}>Reset Password</Text>
@@ -69,7 +71,7 @@ export function ForgotPasswordScreen({
           <TextInput
             style={styles.input}
             placeholder="name@example.com"
-            placeholderTextColor="#727879"
+            placeholderTextColor={colors.body}
             keyboardType="email-address"
             autoCapitalize="none"
             value={email}
@@ -90,7 +92,7 @@ export function ForgotPasswordScreen({
           ]}
         >
           <Text style={styles.resetButtonText}>Send Reset Link</Text>
-          <FontAwesome5 name="paper-plane" size={18} color="#FFFFFF" />
+          <FontAwesome5 name="paper-plane" size={18} color={colors.card} />
         </Pressable>
         {resetLinkSent ? (
           <Text style={styles.successText}>
@@ -120,19 +122,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   card: {
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: "#BACACD",
-    backgroundColor: colors.card,
-    paddingHorizontal: 28,
-    paddingTop: 34,
-    paddingBottom: 26,
     alignItems: "center",
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 15 },
-    shadowOpacity: 0.16,
-    shadowRadius: 22,
-    elevation: 5,
+    ...cardSurface,
   },
   iconBox: {
     width: 62,
@@ -171,7 +162,7 @@ const styles = StyleSheet.create({
     marginTop: 9,
     borderRadius: 10,
     borderWidth: 1.3,
-    borderColor: "#BACACD",
+    borderColor: colors.borderStrong,
     backgroundColor: colors.background,
     flexDirection: "row",
     alignItems: "center",
@@ -179,13 +170,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   inputError: {
-    borderColor: "#B91C1C",
-    backgroundColor: "#FFF7F7",
+    borderColor: colors.error,
+    backgroundColor: colors.background,
   },
   errorText: {
     alignSelf: "flex-start",
     marginTop: 6,
-    color: "#B91C1C",
+    color: colors.error,
     fontSize: 12,
     lineHeight: 15,
     fontFamily: fontFamily.medium,
@@ -212,10 +203,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.ink,
   },
   resetButtonDisabled: {
-    backgroundColor: "#8EA6A8",
+    backgroundColor: colors.borderStrong,
   },
   resetButtonText: {
-    color: "#FFFFFF",
+    color: colors.card,
     fontSize: 18,
     fontFamily: fontFamily.extraBold,
   },

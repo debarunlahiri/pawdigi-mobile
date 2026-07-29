@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./Typography";
 
 import { colors } from "../theme/colors";
 import { fontFamily } from "../theme/typography";
@@ -38,6 +39,6 @@ const styles = StyleSheet.create({
     width: 3,
     height: 3,
     borderRadius: 2,
-    backgroundColor: "#A8B7B9",
+    backgroundColor: colors.borderStrong,
   },
 });

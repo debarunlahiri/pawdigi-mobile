@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef } from "react";
-import { Animated, Image, StyleSheet, Text, View } from "react-native";
+import { Animated, Image, StyleSheet, View } from "react-native";
+import { Text } from "../components/Typography";
 
 import { assets } from "../theme/assets";
 import { colors } from "../theme/colors";
@@ -45,11 +46,7 @@ export function SplashScreen() {
             { opacity: fade, transform: [{ translateY }] },
           ]}
         >
-          <Image
-            source={assets.logo}
-            style={styles.logo}
-            resizeMode="cover"
-          />
+          <Image source={assets.logo} style={styles.logo} resizeMode="cover" />
         </Animated.View>
         <View style={styles.progressTrack}>
           <Animated.View
@@ -135,7 +132,7 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.extraBold,
   },
   footerMeta: {
-    color: "#9AA3A5",
+    color: colors.borderStrong,
     fontSize: 16,
     fontFamily: fontFamily.bold,
     textAlign: "center",

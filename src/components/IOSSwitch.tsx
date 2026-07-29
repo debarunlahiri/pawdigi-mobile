@@ -1,51 +1,111 @@
+import * as Haptics from "expo-haptics";
+import { useEffect, useRef } from "react";
 import { Animated, Pressable, StyleSheet } from "react-native";
 
 import { colors } from "../theme/colors";
+import { elevation } from "../theme/elevation";
 
 export function IOSSwitch({
   value,
   onValueChange,
+  accessibilityLabel,
+  disabled = false,
 }: {
   value: boolean;
   onValueChange: (value: boolean) => void;
+  accessibilityLabel?: string;
+  disabled?: boolean;
 }) {
+  const progress = useRef(new Animated.Value(value ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.spring(progress, {
+      toValue: value ? 1 : 0,
+      damping: 18,
+      stiffness: 220,
+      mass: 0.7,
+      useNativeDriver: false,
+    }).start();
+  }, [progress, value]);
+
+  const handlePress = () => {
+    if (disabled) {
+      return;
+    }
+
+    void Haptics.selectionAsync();
+    onValueChange(!value);
+  };
+
   return (
     <Pressable
+      accessibilityLabel={accessibilityLabel}
       accessibilityRole="switch"
       accessibilityState={{ checked: value }}
-      onPress={() => onValueChange(!value)}
-      style={[styles.track, value && styles.trackActive]}
+      disabled={disabled}
+      hitSlop={8}
+      onPress={handlePress}
+      style={({ pressed }) => [
+        styles.pressable,
+        disabled && styles.disabled,
+        pressed && !disabled && styles.pressed,
+      ]}
     >
-      <Animated.View style={[styles.thumb, value && styles.thumbActive]} />
+      <Animated.View
+        style={[
+          styles.track,
+          {
+            backgroundColor: progress.interpolate({
+              inputRange: [0, 1],
+              outputRange: [colors.borderStrong, colors.primary],
+            }),
+          },
+        ]}
+      >
+        <Animated.View
+          style={[
+            styles.thumb,
+            {
+              transform: [
+                {
+                  translateX: progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, 20],
+                  }),
+                },
+              ],
+            },
+          ]}
+        />
+      </Animated.View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  track: {
-    width: 46,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: "#E7EEEE",
-    justifyContent: "center",
-    paddingHorizontal: 3,
+  pressable: {
+    width: 48,
+    height: 28,
+    borderRadius: 14,
   },
-  trackActive: {
-    backgroundColor: "#BFE8E8",
+  track: {
+    width: 48,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: "center",
+    padding: 3,
   },
   thumb: {
+    ...elevation.l1,
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: "#FFFFFF",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.12,
-    shadowRadius: 2,
-    elevation: 2,
+    backgroundColor: colors.card,
   },
-  thumbActive: {
-    transform: [{ translateX: 18 }],
-    backgroundColor: colors.primary,
+  pressed: {
+    opacity: 0.86,
+  },
+  disabled: {
+    opacity: 0.5,
   },
 });
